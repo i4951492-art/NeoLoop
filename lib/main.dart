@@ -478,7 +478,7 @@ class _GamePageState extends State<GamePage> {
         onPanEnd: (_) => endDrag(), onPanCancel: endDrag,
         child: CustomPaint(painter: GridPainter(n: n, endpoints: endpoints, paths: paths, draft: draft, active: active, owner: owner, colors: colors), child: const SizedBox.expand()),
       );
-    })))),
+    }))),
     Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 16), child: Row(children: [
       Expanded(child: OutlinedButton.icon(onPressed: reset, icon: const Icon(Icons.refresh), label: Text(tr('reset')))),
       const SizedBox(width: 10),
