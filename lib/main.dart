@@ -54,7 +54,27 @@ int? colorFor(int c) {
   }
   return null;
 }
- void begin(int c){if(endpoints.containsKey(c)){setState((){active=endpoints[c];draft=[c];paths.remove(active);});}else{for(final e in paths.entries){if(e.value.contains(c)){setState((){active=e.key;draft=[c];paths.remove(e.key);});break;}}}}
+
+void begin(int c) {
+  if (endpoints.containsKey(c)) {
+    setState(() {
+      active = endpoints[c];
+      draft = [c];
+      paths.remove(active);
+    });
+  } else {
+    for (final e in paths.entries) {
+      if (e.value.contains(c)) {
+        setState(() {
+          active = e.key;
+          draft = [c];
+          paths.remove(e.key);
+        });
+        break;
+      }
+    }
+  }
+}
  void moveTo(int c){if(active==null||draft.isEmpty||draft.contains(c))return;final last=draft.last;if((last%w-c%w).abs()+(last~/w-c~/w).abs()!=1)return;if(colorFor(c)!=null&&colorFor(c)!=active)return;setState((){draft.add(c);moves++;if(endpoints[c]==active&&c!=draft.first){paths[active!]=List.of(draft);active=null;draft=[];if([0,1,2].every(paths.containsKey)){showDialog(context:context,barrierDismissible:false,builder:(ctx)=>AlertDialog(backgroundColor:panel,title:const Text('Уровень пройден! ✨'),content:Text('Ходов: $moves'),actions:[TextButton(onPressed:(){Navigator.pop(ctx);Navigator.pop(context,widget.number);},child:const Text('ДАЛЕЕ'))]));}}});}
  void reset()=>setState(() { paths.clear(); active=null; draft=[]; moves=0; });
  @override Widget build(BuildContext context)=>Scaffold(appBar:AppBar(title:Text('Уровень ${widget.number}'),actions:[IconButton(onPressed:()=>ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content:Text('Подсказка: начните с цветного блока в углу.'))),icon:const Icon(Icons.lightbulb_outline)),IconButton(onPressed:reset,icon:const Icon(Icons.refresh))]),
