@@ -58,7 +58,7 @@ class GridPainter extends CustomPainter{
  for(int y=0;y<h;y++){for(int x=0;x<w;x++){canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x*cw+2,y*ch+2,cw-4,ch-4),const Radius.circular(7)),grid);}}
  void line(List<int> p,Color color){if(p.isEmpty)return;final path=Path();for(int i=0;i<p.length;i++){final c=p[i];final o=Offset((c%w+.5)*cw,(c~/w+.5)*ch);if(i==0)path.moveTo(o.dx,o.dy);else path.lineTo(o.dx,o.dy);}canvas.drawPath(path,Paint()..color=color..strokeWidth=cw*.18..strokeCap=StrokeCap.round..style=PaintingStyle.stroke);}
  for(final e in paths.entries)line(e.value,palette[e.key]);if(active!=null)line(draft,palette[active!]);
- for(final e in endpoints.entries){final o=Offset((e.key%w+.5)*cw,(e.key~/w+.5)*ch);canvas.drawCircle(o,cw*.25,Paint()..color=palette[e.value].palette[e.value].withValues(alpha: .25);canvas.drawCircle(o,cw*.18,Paint()..color=palette[e.value]);canvas.drawCircle(o,cw*.07,Paint()..color=Colors.white);}
+ for(final e in endpoints.entries){final o=Offset((e.key%w+.5)*cw,(e.key~/w+.5)*ch);canvas.drawCircle(o, cw * .25, Paint()..color = palette[e.value].withValues(alpha: .25));canvas.drawCircle(o,cw*.18,Paint()..color=palette[e.value]);canvas.drawCircle(o,cw*.07,Paint()..color=Colors.white);}
  }
  @override bool shouldRepaint(covariant GridPainter old)=>true;
 }
