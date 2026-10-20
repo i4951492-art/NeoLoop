@@ -137,13 +137,105 @@ void moveTo(int c) {
 class GridPainter extends CustomPainter{
  final int w,h;final Map<int,int>endpoints;final Map<int,List<int>>paths;final List<int>draft;final int?active;
  GridPainter({required this.w,required this.h,required this.endpoints,required this.paths,required this.draft,required this.active});
- @override void paint(Canvas canvas,Size s){final cw=s.width/w,ch=s.height/h;canvas.drawRRect(RRect.fromRectAndRadius(Offset.zero&s, const Radius.circular(18)),Paint()..color=panel);
- final grid=Paint()..color=const Color(0xFF24415F)..style=PaintingStyle.stroke;
- for(int y=0;y<h;y++){for(int x=0;x<w;x++){canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x*cw+2,y*ch+2,cw-4,ch-4),const Radius.circular(7)),grid);}}
- void line(List<int> p,Color color){if(p.isEmpty)return;final path=Path();for(int i=0;i<p.length;i++){final c=p[i];final o=Offset((c%w+.5)*cw,(c~/w+.5)*ch);if(i==0)path.moveTo(o.dx,o.dy);else path.lineTo(o.dx,o.dy);}canvas.drawPath(path,Paint()..color=color..strokeWidth=cw*.18..strokeCap=StrokeCap.round..style=PaintingStyle.stroke);}
- for(final e in paths.entries)line(e.value,palette[e.key]);if(active!=null)line(draft,palette[active!]);
- for(final e in endpoints.entries){final o=Offset((e.key%w+.5)*cw,(e.key~/w+.5)*ch);canvas.drawCircle(o, cw * .25, Paint()..color = palette[e.value].withValues(alpha: .25));canvas.drawCircle(o,cw*.18,Paint()..color=palette[e.value]);canvas.drawCircle(o,cw*.07,Paint()..color=Colors.white);}
- }
+
+@override
+void paint(Canvas canvas, Size s) {
+  final cw = s.width / w;
+  final ch = s.height / h;
+
+  canvas.drawRRect(
+    RRect.fromRectAndRadius(
+      Offset.zero & s,
+      const Radius.circular(18),
+    ),
+    Paint()..color = panel,
+  );
+
+  final grid = Paint()
+    ..color = const Color(0xFF24415F)
+    ..style = PaintingStyle.stroke;
+
+  for (int y = 0; y < h; y++) {
+    for (int x = 0; x < w; x++) {
+      canvas.drawRRect(
+        RRect.fromRectAndRadius(
+          Rect.fromLTWH(
+            x * cw + 2,
+            y * ch + 2,
+            cw - 4,
+            ch - 4,
+          ),
+          const Radius.circular(7),
+        ),
+        grid,
+      );
+    }
+  }
+
+  void line(List<int> p, Color color) {
+    if (p.isEmpty) {
+      return;
+    }
+
+    final path = Path();
+
+    for (int i = 0; i < p.length; i++) {
+      final c = p[i];
+      final o = Offset(
+        (c % w + .5) * cw,
+        (c ~/ w + .5) * ch,
+      );
+
+      if (i == 0) {
+        path.moveTo(o.dx, o.dy);
+      } else {
+        path.lineTo(o.dx, o.dy);
+      }
+    }
+
+    canvas.drawPath(
+      path,
+      Paint()
+        ..color = color
+        ..strokeWidth = cw * .18
+        ..strokeCap = StrokeCap.round
+        ..style = PaintingStyle.stroke,
+    );
+  }
+
+  for (final e in paths.entries) {
+    line(e.value, palette[e.key]);
+  }
+
+  if (active != null) {
+    line(draft, palette[active!]);
+  }
+
+  for (final e in endpoints.entries) {
+    final o = Offset(
+      (e.key % w + .5) * cw,
+      (e.key ~/ w + .5) * ch,
+    );
+
+    canvas.drawCircle(
+      o,
+      cw * .25,
+      Paint()..color = palette[e.value].withValues(alpha: .25),
+    );
+
+    canvas.drawCircle(
+      o,
+      cw * .18,
+      Paint()..color = palette[e.value],
+    );
+
+    canvas.drawCircle(
+      o,
+      cw * .07,
+      Paint()..color = Colors.white,
+    );
+  }
+}
  @override bool shouldRepaint(covariant GridPainter old)=>true;
 }
 class SettingsPage extends StatefulWidget{final bool music,effects,ads;final Future<void> Function(bool,bool,bool) onSave;const SettingsPage({super.key,required this.music,required this.effects,required this.ads,required this.onSave});@override State<SettingsPage> createState()=>_SettingsPageState();}
