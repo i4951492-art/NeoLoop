@@ -1,55 +1,138 @@
 import 'dart:math';
-
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(const NeoLoopApp());
 
-const bg = Color(0xFF061226);
-const panel = Color(0xFF0C1E39);
-const cyan = Color(0xFF38D8FF);
-
+const Color bg = Color(0xFF061226);
+const Color panel = Color(0xFF0C1E39);
+const Color cyan = Color(0xFF38D8FF);
 const int totalLevels = 30;
+const int boardSize = 15;
 
-// ───────────────────────── Генератор уровней ─────────────────────────
-//
-// Принцип:
-// 1. Берём «змейку», проходящую по всем клеткам поля 15x15 (гамильтонов путь).
-// 2. Случайно перемешиваем её алгоритмом backbite: путь остаётся гамильтоновым,
-//    но становится всё более запутанным. Чем выше уровень, тем больше итераций.
-// 3. Режем путь на k кусков. Концы кусков — цветные точки, куски — готовое решение.
-//
-// Поэтому уровень ВСЕГДА решаем: решение известно заранее (оно же используется
-// для подсказок). Уровень детерминирован: один номер = одно и то же поле.
+class AppPrefs {
+  static const languages = ['ru', 'uz', 'en', 'uk', 'kk'];
+  static String language = 'ru';
+  static bool sound = true;
+  static bool effects = true;
+  static bool adsEnabled = true;
+  static int level = 1;
+  static int completed = 0;
+
+  static Future<void> load() async {
+    final p = await SharedPreferences.getInstance();
+    language = p.getString('language') ?? 'ru';
+    if (!languages.contains(language)) language = 'ru';
+    sound = p.getBool('sound') ?? true;
+    effects = p.getBool('effects') ?? true;
+    adsEnabled = p.getBool('adsEnabled') ?? true;
+    level = (p.getInt('level') ?? 1).clamp(1, totalLevels).toInt();
+    completed = (p.getInt('completed') ?? 0).clamp(0, totalLevels).toInt();
+  }
+
+  static Future<void> save() async {
+    final p = await SharedPreferences.getInstance();
+    await p.setString('language', language);
+    await p.setBool('sound', sound);
+    await p.setBool('effects', effects);
+    await p.setBool('adsEnabled', adsEnabled);
+    await p.setInt('level', level);
+    await p.setInt('completed', completed);
+  }
+}
+
+const Map<String, Map<String, String>> strings = {
+  'ru': {
+    'tagline':'Соединяй цвета. Заполняй поле.', 'play':'ИГРАТЬ', 'settings':'Настройки',
+    'levels':'Уровни', 'about':'О проекте', 'leaderboard':'Таблица лидеров', 'duel':'Дуэль 1 на 1',
+    'level':'УРОВЕНЬ', 'connect':'Соедини пары и заполни все клетки', 'connected':'Соединено',
+    'filled':'Заполнено', 'hint':'Подсказка', 'reset':'Сначала', 'next':'ДАЛЕЕ',
+    'won':'Уровень пройден!', 'moves':'Ходов', 'hintsUsed':'Подсказок использовано',
+    'language':'Язык', 'sound':'Звук', 'effects':'Эффекты', 'ads':'Реклама включена',
+    'done':'Пройдено уровней', 'offline':'Офлайн • Прогресс сохраняется', 'noHints':'Подсказки закончились',
+    'hintShown':'Показан правильный путь', 'developer':'Разработчик', 'country':'Страна разработки',
+    'description':'NeoLoop — логическая головоломка, в которой игрок соединяет пары цветных точек непрерывными линиями и заполняет всё поле. Уровни создаются автоматически, а сложность растёт по мере прохождения. Игра включает подсказки, сохранение прогресса и подготовку к соревновательным режимам.',
+    'uzName':'O‘zbekcha', 'languageName':'Русский', 'coming':'Скоро появится в следующих обновлениях.',
+    'levelSelect':'Выбери уровень', 'admin':'Администратор', 'adminInfo':'Административные инструменты будут доступны после безопасной серверной настройки.',
+    'adInfo':'Рекламная интеграция ещё не подключена. Здесь пока нет реальных объявлений или дохода.',
+  },
+  'uz': {
+    'tagline':'Ranglarni ulang. Maydonni to‘ldiring.', 'play':'O‘YNASH', 'settings':'Sozlamalar',
+    'levels':'Bosqichlar', 'about':'Loyiha haqida', 'leaderboard':'Yetakchilar jadvali', 'duel':'1 ga 1 duel',
+    'level':'BOSQICH', 'connect':'Juft ranglarni ulang va barcha kataklarni to‘ldiring', 'connected':'Ulangan',
+    'filled':'To‘ldirilgan', 'hint':'Maslahat', 'reset':'Qayta boshlash', 'next':'KEYINGI',
+    'won':'Bosqich tugadi!', 'moves':'Yurishlar', 'hintsUsed':'Ishlatilgan maslahatlar',
+    'language':'Til', 'sound':'Ovoz', 'effects':'Effektlar', 'ads':'Reklama yoqilgan',
+    'done':'Tugatilgan bosqichlar', 'offline':'Oflayn • Jarayon saqlanadi', 'noHints':'Maslahatlar tugadi',
+    'hintShown':'To‘g‘ri yo‘l ko‘rsatildi', 'developer':'Dasturchi', 'country':'Ishlab chiqilgan mamlakat',
+    'description':'NeoLoop — mantiqiy boshqotirma: o‘yinchi bir xil rangdagi nuqtalarni uzluksiz chiziqlar bilan ulab, butun maydonni to‘ldiradi. Bosqichlar avtomatik yaratiladi va qiyinlik oshib boradi. O‘yinda maslahatlar va jarayonni saqlash mavjud.',
+    'uzName':'O‘zbekcha', 'languageName':'Русский', 'coming':'Keyingi yangilanishlarda paydo bo‘ladi.',
+    'levelSelect':'Bosqichni tanlang', 'admin':'Administrator', 'adminInfo':'Administrator vositalari xavfsiz server sozlamasidan keyin qo‘shiladi.',
+    'adInfo':'Reklama hali ulanmagan. Hozircha haqiqiy reklama yoki daromad yo‘q.',
+  },
+  'en': {
+    'tagline':'Connect colors. Fill the board.', 'play':'PLAY', 'settings':'Settings',
+    'levels':'Levels', 'about':'About', 'leaderboard':'Leaderboard', 'duel':'1 vs 1 Duel',
+    'level':'LEVEL', 'connect':'Connect pairs and fill every cell', 'connected':'Connected',
+    'filled':'Filled', 'hint':'Hint', 'reset':'Restart', 'next':'NEXT',
+    'won':'Level complete!', 'moves':'Moves', 'hintsUsed':'Hints used',
+    'language':'Language', 'sound':'Sound', 'effects':'Effects', 'ads':'Ads enabled',
+    'done':'Levels completed', 'offline':'Offline • Progress saved', 'noHints':'No hints left',
+    'hintShown':'A correct path was revealed', 'developer':'Developer', 'country':'Country of development',
+    'description':'NeoLoop is a logic puzzle where players connect matching colored dots with continuous paths and fill the entire board. Levels are generated automatically and become more challenging over time. The game includes hints and local progress saving, with competitive modes planned.',
+    'uzName':'Uzbek', 'languageName':'English', 'coming':'Coming in a future update.',
+    'levelSelect':'Choose a level', 'admin':'Administrator', 'adminInfo':'Admin tools will be available after secure server configuration.',
+    'adInfo':'Ads are not integrated yet. No live ads or revenue are active at this stage.',
+  },
+  'uk': {
+    'tagline':'З’єднуй кольори. Заповнюй поле.', 'play':'ГРАТИ', 'settings':'Налаштування',
+    'levels':'Рівні', 'about':'Про проєкт', 'leaderboard':'Таблиця лідерів', 'duel':'Дуель 1 на 1',
+    'level':'РІВЕНЬ', 'connect':'З’єднай пари та заповни всі клітинки', 'connected':'З’єднано',
+    'filled':'Заповнено', 'hint':'Підказка', 'reset':'Спочатку', 'next':'ДАЛІ',
+    'won':'Рівень пройдено!', 'moves':'Ходів', 'hintsUsed':'Використано підказок',
+    'language':'Мова', 'sound':'Звук', 'effects':'Ефекти', 'ads':'Рекламу ввімкнено',
+    'done':'Пройдено рівнів', 'offline':'Офлайн • Прогрес збережено', 'noHints':'Підказки закінчилися',
+    'hintShown':'Показано правильний шлях', 'developer':'Розробник', 'country':'Країна розробки',
+    'description':'NeoLoop — логічна головоломка, у якій гравець з’єднує пари кольорових точок безперервними лініями та заповнює все поле. Рівні генеруються автоматично, а складність поступово зростає. Є підказки та збереження прогресу.',
+    'uzName':'Узбецька', 'languageName':'Українська', 'coming':'З’явиться в майбутніх оновленнях.',
+    'levelSelect':'Оберіть рівень', 'admin':'Адміністратор', 'adminInfo':'Інструменти адміністратора з’являться після безпечного налаштування сервера.',
+    'adInfo':'Рекламу ще не підключено. Наразі немає реальних оголошень або доходу.',
+  },
+  'kk': {
+    'tagline':'Түстерді қос. Өрісті толтыр.', 'play':'ОЙНАУ', 'settings':'Баптаулар',
+    'levels':'Деңгейлер', 'about':'Жоба туралы', 'leaderboard':'Көшбасшылар кестесі', 'duel':'1-ге 1 жекпе-жек',
+    'level':'ДЕҢГЕЙ', 'connect':'Жұптарды қосып, барлық ұяшықты толтыр', 'connected':'Қосылды',
+    'filled':'Толтырылды', 'hint':'Кеңес', 'reset':'Қайта бастау', 'next':'КЕЛЕСІ',
+    'won':'Деңгей аяқталды!', 'moves':'Жүрістер', 'hintsUsed':'Қолданылған кеңестер',
+    'language':'Тіл', 'sound':'Дыбыс', 'effects':'Әсерлер', 'ads':'Жарнама қосулы',
+    'done':'Өтілген деңгейлер', 'offline':'Офлайн • Үдеріс сақталады', 'noHints':'Кеңестер таусылды',
+    'hintShown':'Дұрыс жол көрсетілді', 'developer':'Әзірлеуші', 'country':'Әзірленген ел',
+    'description':'NeoLoop — ойыншы бір түсті нүктелерді үздіксіз сызықтармен қосып, бүкіл өрісті толтыратын логикалық басқатырғыш. Деңгейлер автоматты түрде жасалады, ал қиындық біртіндеп артады. Кеңестер мен прогресті сақтау мүмкіндігі бар.',
+    'uzName':'Өзбекше', 'languageName':'Қазақша', 'coming':'Келесі жаңартуларда қосылады.',
+    'levelSelect':'Деңгейді таңдаңыз', 'admin':'Әкімші', 'adminInfo':'Әкімші құралдары қауіпсіз сервер бапталғаннан кейін қосылады.',
+    'adInfo':'Жарнама әлі қосылған жоқ. Қазір нақты жарнама да, табыс та жоқ.',
+  },
+};
+
+String tr(String key) => strings[AppPrefs.language]?[key] ?? strings['en']![key] ?? key;
+String languageLabel(String code) => const {'ru':'Русский','uz':'O‘zbekcha','en':'English','uk':'Українська','kk':'Қазақша'}[code] ?? 'Русский';
 
 class LevelData {
-  final int size;
-  final int colors;
-  final Map<int, int> endpoints; // клетка -> индекс цвета
-  final List<List<int>> solution; // решение: путь для каждого цвета
-
+  final int size, colors;
+  final Map<int, int> endpoints;
+  final List<List<int>> solution;
   const LevelData(this.size, this.colors, this.endpoints, this.solution);
 }
 
 class LevelGenerator {
-  static const int size = 15;
-  static const int minSegment = 4;
-
-  /// 0.0 на первом уровне ... 1.0 на последнем.
-  static double _t(int level) =>
-      ((level - 1) / (totalLevels - 1)).clamp(0.0, 1.0).toDouble();
-
-  /// Количество цветов: от 6 до 18.
+  static const int size = boardSize;
+  static double _t(int level) => ((level.clamp(1, totalLevels) - 1) / (totalLevels - 1)).toDouble();
   static int colorCount(int level) => (6 + 12 * _t(level)).round();
-
-  /// Количество «перемешиваний»: от почти ровной змейки до хаотичного пути.
   static int shuffleIterations(int level) => (150 + 30000 * _t(level)).round();
 
   static LevelData generate(int level) {
     final rnd = Random(level * 7919 + 104729);
     const n = size * size;
-
-    // 1. Змейка по всему полю.
     final path = <int>[];
     for (int y = 0; y < size; y++) {
       for (int i = 0; i < size; i++) {
@@ -58,628 +141,385 @@ class LevelGenerator {
       }
     }
     final pos = List<int>.filled(n, 0);
-    for (int i = 0; i < n; i++) {
-      pos[path[i]] = i;
-    }
-
+    for (int i = 0; i < n; i++) { pos[path[i]] = i; }
     void reverse(int a, int b) {
       while (a < b) {
         final x = path[a], y = path[b];
-        path[a] = y;
-        path[b] = x;
-        pos[y] = a;
-        pos[x] = b;
-        a++;
-        b--;
+        path[a] = y; path[b] = x; pos[y] = a; pos[x] = b; a++; b--;
       }
     }
-
-    // 2. Перемешивание (backbite).
-    final iterations = shuffleIterations(level);
-    for (int it = 0; it < iterations; it++) {
+    for (int it = 0; it < shuffleIterations(level); it++) {
       final head = rnd.nextBool();
       final e = head ? path.first : path.last;
-      final ex = e % size, ey = e ~/ size;
+      final x = e % size, y = e ~/ size;
       final nbs = <int>[
-        if (ex > 0) e - 1,
-        if (ex < size - 1) e + 1,
-        if (ey > 0) e - size,
-        if (ey < size - 1) e + size,
+        if (x > 0) e - 1, if (x < size - 1) e + 1,
+        if (y > 0) e - size, if (y < size - 1) e + size,
       ];
-      final nb = nbs[rnd.nextInt(nbs.length)];
-      final j = pos[nb];
-      if (head) {
-        if (j == 1) continue;
-        reverse(0, j - 1);
-      } else {
-        if (j == n - 2) continue;
-        reverse(j + 1, n - 1);
-      }
+      final j = pos[nbs[rnd.nextInt(nbs.length)]];
+      if (head) { if (j != 1) reverse(0, j - 1); }
+      else { if (j != n - 2) reverse(j + 1, n - 1); }
     }
-
-    // 3. Нарезка на k кусков разной длины.
     final k = colorCount(level);
-    final weights = List<double>.generate(k, (_) => 0.4 + rnd.nextDouble() * 1.6);
-    final wSum = weights.reduce((a, b) => a + b);
-    final rest = n - k * minSegment;
-    final lens = List<int>.generate(
-      k,
-      (i) => minSegment + (rest * weights[i] / wSum).floor(),
-    );
-    var left = n - lens.reduce((a, b) => a + b);
-    while (left > 0) {
-      lens[rnd.nextInt(k)]++;
-      left--;
-    }
-
-    final solution = <List<int>>[];
+    final weights = List<double>.generate(k, (_) => .4 + rnd.nextDouble() * 1.6);
+    final sum = weights.fold<double>(0, (a, b) => a + b);
+    final rest = n - k * 4;
+    final lengths = List<int>.generate(k, (i) => 4 + (rest * weights[i] / sum).floor());
+    var left = n - lengths.fold<int>(0, (a, b) => a + b);
+    while (left-- > 0) { lengths[rnd.nextInt(k)]++; }
+    final solutions = <List<int>>[];
     final endpoints = <int, int>{};
     var start = 0;
     for (int i = 0; i < k; i++) {
-      final seg = path.sublist(start, start + lens[i]);
-      start += lens[i];
-      solution.add(seg);
-      endpoints[seg.first] = i;
-      endpoints[seg.last] = i;
+      final segment = path.sublist(start, start + lengths[i]); start += lengths[i];
+      solutions.add(segment); endpoints[segment.first] = i; endpoints[segment.last] = i;
     }
-    return LevelData(size, k, endpoints, solution);
+    return LevelData(size, k, endpoints, solutions);
   }
 }
 
-/// Палитра нужного размера: золотой угол даёт максимально разные соседние цвета.
-List<Color> buildPalette(int n) => List.generate(
-      n,
-      (i) => HSVColor.fromAHSV(
-        1,
-        (i * 137.508) % 360,
-        i.isEven ? 0.78 : 0.55,
-        i % 3 == 0 ? 1.0 : 0.88,
-      ).toColor(),
-    );
-
-// ───────────────────────── Приложение ─────────────────────────
+List<Color> buildPalette(int n) => List.generate(n, (i) => HSVColor.fromAHSV(
+  1, (i * 137.508) % 360, i.isEven ? .78 : .55, i % 3 == 0 ? 1 : .88,
+).toColor());
 
 class NeoLoopApp extends StatelessWidget {
   const NeoLoopApp({super.key});
-
   @override
   Widget build(BuildContext context) => MaterialApp(
-        title: 'NeoLoop',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          brightness: Brightness.dark,
-          scaffoldBackgroundColor: bg,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: cyan,
-            brightness: Brightness.dark,
-          ),
-          useMaterial3: true,
-        ),
-        home: const HomePage(),
-      );
+    title: 'NeoLoop', debugShowCheckedModeBanner: false,
+    theme: ThemeData(brightness: Brightness.dark, scaffoldBackgroundColor: bg,
+      colorScheme: ColorScheme.fromSeed(seedColor: cyan, brightness: Brightness.dark),
+      useMaterial3: true),
+    home: const BootPage(),
+  );
 }
 
-// ───────────────────────── Главный экран ─────────────────────────
+class BootPage extends StatefulWidget {
+  const BootPage({super.key});
+  @override
+  State<BootPage> createState() => _BootPageState();
+}
+class _BootPageState extends State<BootPage> {
+  @override
+  void initState() { super.initState(); _init(); }
+  Future<void> _init() async { await AppPrefs.load(); if (mounted) setState(() {}); }
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<void>(
+      future: _loadOnce,
+      builder: (context, snapshot) => const HomePage(),
+    );
+  }
+  Future<void> get _loadOnce async {}
+}
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
-
   @override
   State<HomePage> createState() => _HomePageState();
 }
-
 class _HomePageState extends State<HomePage> {
-  int level = 1, completed = 0;
-  bool music = true, effects = true, ads = true;
-
   @override
-  void initState() {
-    super.initState();
-    _load();
-  }
-
-  Future<void> _load() async {
-    final p = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() {
-      level = p.getInt('level') ?? 1;
-      completed = p.getInt('completed') ?? 0;
-      music = p.getBool('music') ?? true;
-      effects = p.getBool('effects') ?? true;
-      ads = p.getBool('ads') ?? true;
-    });
-  }
-
-  Future<void> _save() async {
-    final p = await SharedPreferences.getInstance();
-    await p.setInt('level', level);
-    await p.setInt('completed', completed);
-    await p.setBool('music', music);
-    await p.setBool('effects', effects);
-    await p.setBool('ads', ads);
-  }
-
+  void initState() { super.initState(); AppPrefs.load().then((_) { if (mounted) setState(() {}); }); }
   Future<void> _play() async {
-    final result = await Navigator.push<int>(
-      context,
-      MaterialPageRoute(builder: (_) => GamePage(number: level)),
-    );
+    final result = await Navigator.push<int>(context, MaterialPageRoute(builder: (_) => GamePage(number: AppPrefs.level)));
     if (result != null && mounted) {
-      setState(() {
-        if (completed < result) completed = result;
-        level = result < totalLevels ? result + 1 : totalLevels;
-      });
-      await _save();
+      AppPrefs.completed = max(AppPrefs.completed, result);
+      AppPrefs.level = min(totalLevels, result + 1);
+      await AppPrefs.save(); setState(() {});
     }
   }
-
-  Future<void> _openSettings() async {
-    await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SettingsPage(
-          music: music,
-          effects: effects,
-          ads: ads,
-          onSave: (m, e, a) async {
-            setState(() {
-              music = m;
-              effects = e;
-              ads = a;
-            });
-            await _save();
-          },
-        ),
-      ),
-    );
-  }
-
   @override
-  Widget build(BuildContext context) {
-    final size = LevelGenerator.size;
-    final colors = LevelGenerator.colorCount(level);
-    return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(22),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              const SizedBox(height: 25),
-              Row(
-                children: [
-                  Container(
-                    width: 54,
-                    height: 54,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [cyan, Color(0xFF8B5CFF)],
-                      ),
-                      borderRadius: BorderRadius.circular(17),
-                    ),
-                    child: const Icon(Icons.all_inclusive, size: 35),
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'NeoLoop',
-                          style: TextStyle(
-                            fontSize: 34,
-                            fontWeight: FontWeight.w900,
-                          ),
-                        ),
-                        Text(
-                          'Простые ходы. Бесконечное удовольствие.',
-                          style: TextStyle(color: Colors.white70, fontSize: 11),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-              const Spacer(),
-              Container(
-                padding: const EdgeInsets.all(22),
-                decoration: BoxDecoration(
-                  color: panel,
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: cyan.withOpacity(.35)),
-                ),
-                child: Column(
-                  children: [
-                    const Icon(Icons.blur_circular, size: 75, color: cyan),
-                    Text(
-                      'УРОВЕНЬ $level',
-                      style: const TextStyle(
-                        color: cyan,
-                        letterSpacing: 2,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    const SizedBox(height: 10),
-                    const Text(
-                      'Соедини цвета и заполни всё поле',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      'Поле $size×$size • цветов: $colors',
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                    Text(
-                      'Пройдено уровней: $completed из $totalLevels',
-                      style: const TextStyle(color: Colors.white70),
-                    ),
-                    const SizedBox(height: 20),
-                    FilledButton(
-                      onPressed: _play,
-                      style: FilledButton.styleFrom(
-                        backgroundColor: cyan,
-                        foregroundColor: bg,
-                        minimumSize: const Size.fromHeight(54),
-                      ),
-                      child: const Text(
-                        'ИГРАТЬ',
-                        style: TextStyle(fontWeight: FontWeight.w900),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 14),
-              OutlinedButton.icon(
-                onPressed: _openSettings,
-                icon: const Icon(Icons.settings),
-                label: const Text('Настройки'),
-              ),
-              const Spacer(),
-              const Text(
-                'Офлайн • Сохранение прогресса',
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white38, fontSize: 11),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => Scaffold(
+    body: SafeArea(child: Padding(padding: const EdgeInsets.all(22), child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        const SizedBox(height: 18),
+        Row(children: [
+          Container(width: 54, height: 54, decoration: BoxDecoration(
+            gradient: const LinearGradient(colors: [cyan, Color(0xFF8B5CFF)]),
+            borderRadius: BorderRadius.circular(17)),
+            child: const Icon(Icons.all_inclusive, size: 35)),
+          const SizedBox(width: 12),
+          Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('NeoLoop', style: TextStyle(fontSize: 32, fontWeight: FontWeight.w900)),
+            Text(tr('tagline'), style: const TextStyle(color: Colors.white70, fontSize: 12)),
+          ])),
+          IconButton(onPressed: () async { await Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage())); setState(() {}); }, icon: const Icon(Icons.settings))
+        ]),
+        const Spacer(),
+        Container(padding: const EdgeInsets.all(22), decoration: BoxDecoration(
+          color: panel, borderRadius: BorderRadius.circular(28), border: Border.all(color: cyan.withOpacity(.35)),
+        ), child: Column(children: [
+          const Icon(Icons.blur_circular, size: 72, color: cyan),
+          Text('${tr('level')} ${AppPrefs.level}', style: const TextStyle(color: cyan, letterSpacing: 2, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 12),
+          Text(tr('connect'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 21, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 8),
+          Text('15×15 • ${LevelGenerator.colorCount(AppPrefs.level)}', style: const TextStyle(color: Colors.white70)),
+          Text('${tr('done')}: ${AppPrefs.completed}/$totalLevels', style: const TextStyle(color: Colors.white70)),
+          const SizedBox(height: 18),
+          FilledButton(onPressed: _play, style: FilledButton.styleFrom(backgroundColor: cyan, foregroundColor: bg, minimumSize: const Size.fromHeight(52)), child: Text(tr('play'), style: const TextStyle(fontWeight: FontWeight.w900))),
+        ])),
+        const SizedBox(height: 12),
+        _MenuButton(icon: Icons.grid_view, label: tr('levels'), onTap: () async {
+          final selected = await Navigator.push<int>(context, MaterialPageRoute(builder: (_) => const LevelsPage()));
+          if (selected != null) { AppPrefs.level = selected; await AppPrefs.save(); setState(() {}); }
+        }),
+        _MenuButton(icon: Icons.emoji_events_outlined, label: tr('leaderboard'), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InfoPage(titleKey: 'leaderboard', icon: Icons.emoji_events, bodyKey: 'coming')))),
+        _MenuButton(icon: Icons.sports_esports_outlined, label: tr('duel'), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InfoPage(titleKey: 'duel', icon: Icons.bolt, bodyKey: 'coming')))),
+        _MenuButton(icon: Icons.info_outline, label: tr('about'), onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutPage()))),
+        const Spacer(),
+        Text(tr('offline'), textAlign: TextAlign.center, style: const TextStyle(color: Colors.white38, fontSize: 11)),
+      ],
+    ))),
+  );
 }
 
-// ───────────────────────── Игровой экран ─────────────────────────
+class _MenuButton extends StatelessWidget {
+  final IconData icon; final String label; final VoidCallback onTap;
+  const _MenuButton({required this.icon, required this.label, required this.onTap});
+  @override
+  Widget build(BuildContext context) => Padding(padding: const EdgeInsets.only(top: 8), child: OutlinedButton.icon(
+    onPressed: onTap, icon: Icon(icon), label: Text(label), style: OutlinedButton.styleFrom(
+      foregroundColor: Colors.white, side: BorderSide(color: cyan.withOpacity(.25)),
+      minimumSize: const Size.fromHeight(46), alignment: Alignment.centerLeft,
+    )));
+}
+
+class LevelsPage extends StatelessWidget {
+  const LevelsPage({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: Text(tr('levelSelect'))),
+    body: GridView.builder(padding: const EdgeInsets.all(16), gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, crossAxisSpacing: 8, mainAxisSpacing: 8),
+      itemCount: totalLevels, itemBuilder: (context, i) {
+        final n = i + 1; final unlocked = n <= AppPrefs.completed + 1;
+        return FilledButton(onPressed: unlocked ? () => Navigator.pop(context, n) : null,
+          style: FilledButton.styleFrom(backgroundColor: n == AppPrefs.level ? cyan : panel, foregroundColor: n == AppPrefs.level ? bg : Colors.white),
+          child: Text('$n'));
+      }));
+}
+
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+class _SettingsPageState extends State<SettingsPage> {
+  @override
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: Text(tr('settings'))),
+    body: ListView(padding: const EdgeInsets.all(16), children: [
+      ListTile(title: Text(tr('language')), leading: const Icon(Icons.language),
+        trailing: DropdownButton<String>(value: AppPrefs.language, items: const [
+          DropdownMenuItem(value:'ru', child: Text('🇷🇺 Русский')),
+          DropdownMenuItem(value:'uz', child: Text('🇺🇿 O‘zbekcha')),
+          DropdownMenuItem(value:'en', child: Text('🇬🇧 English')),
+          DropdownMenuItem(value:'uk', child: Text('🇺🇦 Українська')),
+          DropdownMenuItem(value:'kk', child: Text('🇰🇿 Қазақша')),
+        ], onChanged: (v) async { if (v != null) { AppPrefs.language = v; await AppPrefs.save(); setState(() {}); } })),
+      SwitchListTile(title: Text(tr('sound')), value: AppPrefs.sound, onChanged: (v) async { setState(() => AppPrefs.sound = v); await AppPrefs.save(); }),
+      SwitchListTile(title: Text(tr('effects')), value: AppPrefs.effects, onChanged: (v) async { setState(() => AppPrefs.effects = v); await AppPrefs.save(); }),
+      SwitchListTile(title: Text(tr('ads')), value: AppPrefs.adsEnabled, onChanged: (v) async { setState(() => AppPrefs.adsEnabled = v); await AppPrefs.save(); }),
+      const SizedBox(height: 12),
+      Card(color: panel, child: Padding(padding: const EdgeInsets.all(16), child: Text(tr('adInfo')))),
+      const SizedBox(height: 12),
+      ListTile(leading: const Icon(Icons.admin_panel_settings_outlined), title: Text(tr('admin')), subtitle: Text(tr('adminInfo'))),
+    ]));
+}
+
+class AboutPage extends StatelessWidget {
+  const AboutPage({super.key});
+  @override
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: Text(tr('about')),
+    ), body: ListView(padding: const EdgeInsets.all(20), children: [
+      const Icon(Icons.all_inclusive, color: cyan, size: 80),
+      const Text('NeoLoop', textAlign: TextAlign.center, style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900)),
+      const SizedBox(height: 20),
+      Text(tr('description'), style: const TextStyle(fontSize: 16, height: 1.5)),
+      const SizedBox(height: 22),
+      ListTile(leading: const Icon(Icons.person_outline), title: Text(tr('developer')), subtitle: const Text('Saidov Islom')),
+      ListTile(leading: const Icon(Icons.flag_outlined), title: Text(tr('country')), subtitle: const Text('Uzbekistan / O‘zbekiston / Узбекистан')),
+      const ListTile(leading: Icon(Icons.phone_android), title: Text('Платформа / Platform'), subtitle: Text('Android')),
+      const ListTile(leading: Icon(Icons.info_outline), title: Text('Version'), subtitle: Text('1.0.0')),
+    ]));
+}
+
+class InfoPage extends StatelessWidget {
+  final String titleKey, bodyKey; final IconData icon;
+  const InfoPage({super.key, required this.titleKey, required this.icon, required this.bodyKey});
+  @override
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: Text(tr(titleKey))),
+    body: Center(child: Padding(padding: const EdgeInsets.all(28), child: Column(mainAxisSize: MainAxisSize.min, children: [
+      Icon(icon, size: 72, color: cyan), const SizedBox(height: 18),
+      Text(tr(bodyKey), textAlign: TextAlign.center, style: const TextStyle(fontSize: 17)),
+    ]))));
+}
 
 class GamePage extends StatefulWidget {
   final int number;
   const GamePage({super.key, required this.number});
-
   @override
   State<GamePage> createState() => _GamePageState();
 }
-
 class _GamePageState extends State<GamePage> {
-  static const int maxHints = 3;
-
+  static const maxHints = 3;
   late final LevelData data = LevelGenerator.generate(widget.number);
   late final List<Color> colors = buildPalette(data.colors);
   late final int n = data.size;
   late final List<int> owner = List<int>.filled(n * n, -1);
-
-  /// Готовые/частично проведённые пути: цвет -> клетки (от одной точки к другой).
   final Map<int, List<int>> paths = {};
   int? active;
   List<int> draft = [];
-  int moves = 0;
-  int hintsLeft = maxHints;
-  bool _won = false;
-
+  int moves = 0, hintsLeft = maxHints;
+  bool won = false;
   Map<int, int> get endpoints => data.endpoints;
-
-  // ---- вспомогательное ----
 
   void _rebuild() {
     owner.fillRange(0, owner.length, -1);
-    paths.forEach((k, p) {
-      for (final c in p) {
-        owner[c] = k;
-      }
-    });
-    if (active != null) {
-      for (final c in draft) {
-        owner[c] = active!;
-      }
+    for (final entry in paths.entries) {
+      for (final c in entry.value) { owner[c] = entry.key; }
     }
+    if (active != null) { for (final c in draft) { owner[c] = active!; } }
   }
-
   bool _connected(int k) {
     final p = paths[k];
-    return p != null &&
-        p.length >= 2 &&
-        p.first != p.last &&
-        endpoints[p.first] == k &&
-        endpoints[p.last] == k;
+    return p != null && p.length >= 2 && endpoints[p.first] == k && endpoints[p.last] == k;
   }
+  int get connectedCount => List.generate(data.colors, (i) => i).where(_connected).length;
+  int get filledPercent => (owner.where((v) => v >= 0).length * 100 / (n * n)).floor();
 
-  int get connectedCount =>
-      List.generate(data.colors, (i) => i).where(_connected).length;
-
-  int get filledPercent =>
-      (owner.where((e) => e >= 0).length * 100 / (n * n)).floor();
-
-  /// Обрезает путь цвета [k] перед клеткой [c] (чужая линия «прорезана»).
-  void _cut(int k, int c) {
-    final p = paths[k];
-    if (p == null) return;
-    final i = p.indexOf(c);
-    if (i < 2) {
-      paths.remove(k);
-    } else {
-      paths[k] = p.sublist(0, i);
-    }
+  void _cut(int k, int cell) {
+    final p = paths[k]; if (p == null) return;
+    final i = p.indexOf(cell);
+    if (i < 2) { paths.remove(k); } else { paths[k] = p.sublist(0, i); }
   }
-
-  // ---- жесты ----
-
   void begin(int c) {
-    if (_won) return;
+    if (won) return;
     if (endpoints.containsKey(c)) {
-      // Старт с цветной точки: путь этого цвета рисуется заново.
-      setState(() {
-        final k = endpoints[c]!;
-        paths.remove(k);
-        active = k;
-        draft = [c];
-        moves++;
-        _rebuild();
-      });
+      setState(() { final k = endpoints[c]!; paths.remove(k); active = k; draft = [c]; moves++; _rebuild(); });
     } else if (owner[c] >= 0 && paths.containsKey(owner[c])) {
-      // Старт с середины готовой линии: продолжаем с этого места.
-      setState(() {
-        final k = owner[c];
-        final p = paths[k]!;
-        final i = p.indexOf(c);
-        draft = p.sublist(0, i + 1);
-        paths.remove(k);
-        active = k;
-        moves++;
-        _rebuild();
-      });
+      setState(() { final k = owner[c]; final p = paths[k]!; final i = p.indexOf(c); draft = p.sublist(0, i + 1); paths.remove(k); active = k; moves++; _rebuild(); });
     }
   }
-
   void moveTo(int c) {
-    if (_won || active == null || draft.isEmpty) return;
-
-    final last = draft.last;
-    if (c == last) return;
-
-    // Шаг назад: возвращаемся в предыдущую клетку — линия укорачивается.
+    if (won || active == null || draft.isEmpty) return;
+    final last = draft.last; if (c == last) return;
     if (draft.length >= 2 && c == draft[draft.length - 2]) {
-      setState(() {
-        draft.removeLast();
-        _rebuild();
-      });
-      return;
+      setState(() { draft.removeLast(); _rebuild(); }); return;
     }
-
     if (draft.contains(c)) return;
-
-    // Только соседние клетки.
-    final dist = (last % n - c % n).abs() + (last ~/ n - c ~/ n).abs();
-    if (dist != 1) return;
-
-    // Чужие цветные точки трогать нельзя.
+    final distance = (last % n - c % n).abs() + (last ~/ n - c ~/ n).abs();
+    if (distance != 1) return;
     if (endpoints.containsKey(c) && endpoints[c] != active) return;
-
-    var done = false;
+    var finished = false;
     setState(() {
-      final o = owner[c];
-      if (o >= 0 && o != active) _cut(o, c);
+      final other = owner[c]; if (other >= 0 && other != active) _cut(other, c);
       draft.add(c);
-      if (endpoints[c] == active) {
-        paths[active!] = List.of(draft);
-        active = null;
-        draft = [];
-        done = true;
-      }
+      if (endpoints[c] == active) { paths[active!] = List.of(draft); active = null; draft = []; finished = true; }
       _rebuild();
     });
-    if (done) _checkWin();
+    if (finished) _checkWin();
   }
-
   void endDrag() {
     if (active == null) return;
-    setState(() {
-      // Незаконченная линия остаётся на поле, её можно продолжить.
-      if (draft.length >= 2) paths[active!] = List.of(draft);
-      active = null;
-      draft = [];
-      _rebuild();
-    });
+    setState(() { if (draft.length >= 2) paths[active!] = List.of(draft); active = null; draft = []; _rebuild(); });
   }
-
-  // ---- победа ----
-
-  void _checkWin() {
-    if (_won) return;
-    final allConnected = List.generate(data.colors, (i) => i).every(_connected);
-    final allFilled = !owner.contains(-1);
-    if (!allConnected || !allFilled) return;
-    _won = true;
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: panel,
-        title: const Text('Уровень пройден! ✨'),
-        content: Text(
-          'Ходов: $moves\nПодсказок использовано: ${maxHints - hintsLeft}',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.pop(context, widget.number);
-            },
-            child: const Text('ДАЛЕЕ'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // ---- кнопки ----
-
-  void reset() => setState(() {
-        paths.clear();
-        active = null;
-        draft = [];
-        moves = 0;
-        _rebuild();
-      });
-
   bool _matchesSolution(int k) {
-    final p = paths[k];
-    if (p == null) return false;
-    final s = data.solution[k];
-    if (p.length != s.length) return false;
-    bool same(List<int> a, List<int> b) {
-      for (int i = 0; i < a.length; i++) {
-        if (a[i] != b[i]) return false;
-      }
-      return true;
-    }
-
-    return same(p, s) || same(p, s.reversed.toList());
+    final p = paths[k]; if (p == null) return false;
+    final s = data.solution[k]; if (p.length != s.length) return false;
+    for (int i = 0; i < p.length; i++) { if (p[i] != s[i]) return false; }
+    return true;
   }
-
-  /// Подсказка: ставит на поле правильный путь для одного из цветов.
   void hint() {
-    if (_won) return;
-    if (hintsLeft <= 0) {
-      _snack('Подсказки закончились.');
-      return;
-    }
-    final bad = [
-      for (int k = 0; k < data.colors; k++)
-        if (!_matchesSolution(k)) k
-    ];
-    if (bad.isEmpty) return;
-
-    final k = bad[Random().nextInt(bad.length)];
-    final sol = data.solution[k];
-    final solSet = sol.toSet();
-
+    if (won) return;
+    if (hintsLeft <= 0) { _snack(tr('noHints')); return; }
+    final missing = [for (int k = 0; k < data.colors; k++) if (!_matchesSolution(k)) k];
+    if (missing.isEmpty) return;
+    final k = missing[Random().nextInt(missing.length)]; final sol = data.solution[k]; final set = sol.toSet();
     setState(() {
-      active = null;
-      draft = [];
-      for (final o in paths.keys.toList()) {
-        if (o == k) continue;
-        final p = paths[o]!;
-        final i = p.indexWhere(solSet.contains);
-        if (i >= 0) {
-          if (i < 2) {
-            paths.remove(o);
-          } else {
-            paths[o] = p.sublist(0, i);
-          }
-        }
+      active = null; draft = [];
+      for (final other in paths.keys.toList()) {
+        if (other == k) continue;
+        final p = paths[other]!; final i = p.indexWhere(set.contains);
+        if (i >= 0) { if (i < 2) { paths.remove(other); } else { paths[other] = p.sublist(0, i); } }
       }
-      paths[k] = List.of(sol);
-      hintsLeft--;
-      _rebuild();
+      paths[k] = List.of(sol); hintsLeft--; _rebuild();
     });
-    _snack('Показан путь одного цвета. Осталось подсказок: $hintsLeft');
-    _checkWin();
+    _snack('${tr('hintShown')} • $hintsLeft'); _checkWin();
   }
-
-  void _snack(String text) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(SnackBar(content: Text(text)));
+  void _snack(String s) { ScaffoldMessenger.of(context)..hideCurrentSnackBar()..showSnackBar(SnackBar(content: Text(s))); }
+  void reset() => setState(() { paths.clear(); active = null; draft = []; moves = 0; hintsLeft = maxHints; _rebuild(); });
+  void _checkWin() {
+    if (won) return;
+    if (!List.generate(data.colors, (i) => i).every(_connected) || owner.contains(-1)) return;
+    won = true;
+    showDialog<void>(context: context, barrierDismissible: false, builder: (ctx) => AlertDialog(
+      backgroundColor: panel, title: Text(tr('won')),
+      content: Text('${tr('moves')}: $moves\n${tr('hintsUsed')}: ${maxHints - hintsLeft}'),
+      actions: [TextButton(onPressed: () { Navigator.pop(ctx); Navigator.pop(context, widget.number); }, child: Text(tr('next')))],
+    ));
   }
-
-  int? _cellAt(Offset p, double cw) {
-    final x = (p.dx / cw).floor();
-    final y = (p.dy / cw).floor();
+  int? _cellAt(Offset p, double cell) {
+    final x = (p.dx / cell).floor(), y = (p.dy / cell).floor();
     if (x < 0 || x >= n || y < 0 || y >= n) return null;
     return y * n + x;
   }
-
   @override
-  Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(
-          title: Text('Уровень ${widget.number}'),
-          actions: [
-            IconButton(
-              tooltip: 'Подсказка',
-              onPressed: hint,
-              icon: const Icon(Icons.lightbulb_outline),
-            ),
-            IconButton(
-              tooltip: 'Сначала',
-              onPressed: reset,
-              icon: const Icon(Icons.refresh),
-            ),
-          ],
-        ),
-        body: Column(
-          children: [
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 8, 16, 4),
-              child: Text(
-                'Соедини пары и заполни ВСЕ клетки.\n'
-                'Соединено: $connectedCount/${data.colors} • '
-                'Заполнено: $filledPercent%',
-                textAlign: TextAlign.center,
-              ),
-            ),
-            Expanded(
-              child: Center(
-                child: AspectRatio(
-                  aspectRatio: 1,
-                  child: Padding(
-                    padding: const EdgeInsets.all(8),
-                    child: LayoutBuilder(
-                      builder: (context, box) {
-                        final cw = box.maxWidth / n;
-                        return GestureDetector(
-                          onPanStart: (d) {
-                            final c = _cellAt(d.localPosition, cw);
-                            if (c != null) begin(c);
-                          },
-                          onPanUpdate: (d) {
-                            final c = _cellAt(d.localPosition, cw);
-                            if (c != null) moveTo(c);
-                          },
-                          onPanEnd: (_) => endDrag(),
-                          onPanCancel: endDrag,
-                          child: CustomPaint(
-                            painter: GridPainter(
-                              n: n,
-                              endpoints: endpoints,
-                              paths: paths,
-                              draft: draft,
-                              active: active,
-                              owner: owner,
-                              colors: colors,
-                            ),
-                            child: const SizedBox.expand(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(18),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton(
-     
+  Widget build(BuildContext context) => Scaffold(appBar: AppBar(title: Text('${tr('level')} ${widget.number}'), actions: [
+    IconButton(tooltip: tr('hint'), onPressed: hint, icon: const Icon(Icons.lightbulb_outline)),
+    IconButton(tooltip: tr('reset'), onPressed: reset, icon: const Icon(Icons.refresh)),
+  ]), body: Column(children: [
+    Padding(padding: const EdgeInsets.fromLTRB(12, 8, 12, 4), child: Text(
+      '${tr('connect')}\n${tr('connected')}: $connectedCount/${data.colors} • ${tr('filled')}: $filledPercent%', textAlign: TextAlign.center)),
+    Expanded(child: Center(child: AspectRatio(aspectRatio: 1, child: Padding(padding: const EdgeInsets.all(8), child: LayoutBuilder(builder: (context, box) {
+      final cell = box.maxWidth / n;
+      return GestureDetector(
+        onPanStart: (d) { final c = _cellAt(d.localPosition, cell); if (c != null) begin(c); },
+        onPanUpdate: (d) { final c = _cellAt(d.localPosition, cell); if (c != null) moveTo(c); },
+        onPanEnd: (_) => endDrag(), onPanCancel: endDrag,
+        child: CustomPaint(painter: GridPainter(n: n, endpoints: endpoints, paths: paths, draft: draft, active: active, owner: owner, colors: colors), child: const SizedBox.expand()),
+      );
+    })))),
+    Padding(padding: const EdgeInsets.fromLTRB(16, 2, 16, 16), child: Row(children: [
+      Expanded(child: OutlinedButton.icon(onPressed: reset, icon: const Icon(Icons.refresh), label: Text(tr('reset')))),
+      const SizedBox(width: 10),
+      Expanded(child: FilledButton.icon(onPressed: hint, icon: const Icon(Icons.lightbulb_outline), label: Text('${tr('hint')} ($hintsLeft)'))),
+    ])),
+  ]));
+}
+
+class GridPainter extends CustomPainter {
+  final int n; final Map<int, int> endpoints; final Map<int, List<int>> paths;
+  final List<int> draft; final int? active; final List<int> owner; final List<Color> colors;
+  GridPainter({required this.n, required this.endpoints, required this.paths, required this.draft, required this.active, required this.owner, required this.colors});
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cell = size.width / n;
+    final grid = Paint()..color = const Color(0xFF1C3555)..style = PaintingStyle.stroke..strokeWidth = .7;
+    for (int y = 0; y < n; y++) {
+      for (int x = 0; x < n; x++) {
+        canvas.drawRect(Rect.fromLTWH(x * cell, y * cell, cell, cell), grid);
+      }
+    }
+    void drawPath(List<int> p, Color color) {
+      if (p.isEmpty) return;
+      final paint = Paint()..color = color..style = PaintingStyle.stroke..strokeWidth = cell * .58..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round;
+      final glow = Paint()..color = color.withOpacity(.18)..style = PaintingStyle.stroke..strokeWidth = cell * .9..strokeCap = StrokeCap.round..strokeJoin = StrokeJoin.round..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+      final path = Path();
+      Offset center(int c) => Offset((c % n + .5) * cell, (c ~/ n + .5) * cell);
+      path.moveTo(center(p.first).dx, center(p.first).dy);
+      for (final c in p.skip(1)) { final pt = center(c); path.lineTo(pt.dx, pt.dy); }
+      canvas.drawPath(path, glow); canvas.drawPath(path, paint);
+    }
+    for (final e in paths.entries) { drawPath(e.value, colors[e.key]); }
+    if (active != null && draft.isNotEmpty) drawPath(draft, colors[active!]);
+    for (final e in endpoints.entries) {
+      final c = e.key; final color = colors[e.value];
+      final center = Offset((c % n + .5) * cell, (c ~/ n + .5) * cell);
+      canvas.drawCircle(center, cell * .38, Paint()..color = color.withOpacity(.22));
+      canvas.drawCircle(center, cell * .29, Paint()..color = color);
+      canvas.drawCircle(center, cell * .12, Paint()..color = bg);
+    }
+  }
+  @override
+  bool shouldRepaint(covariant GridPainter old) => true;
+}
