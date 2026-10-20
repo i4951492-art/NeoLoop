@@ -37,7 +37,23 @@ class GamePage extends StatefulWidget {final int number;const GamePage({super.ke
 class _GamePageState extends State<GamePage>{
  final int w=5,h=5; final Map<int,List<int>> paths={}; int? active; List<int> draft=[]; int moves=0;
  final endpoints=const <int,int>{0:0,24:0,4:1,20:1,2:2,22:2};
- int? colorFor(int c){for(final e in endpoints.entries){if(e.key==c)return e.value;}for(final e in paths.entries){if(e.value.contains(c))return e.key;}if(draft.contains(c))return active;return null;}
+
+int? colorFor(int c) {
+  for (final e in endpoints.entries) {
+    if (e.key == c) {
+      return e.value;
+    }
+  }
+  for (final e in paths.entries) {
+    if (e.value.contains(c)) {
+      return e.key;
+    }
+  }
+  if (draft.contains(c)) {
+    return active;
+  }
+  return null;
+}
  void begin(int c){if(endpoints.containsKey(c)){setState((){active=endpoints[c];draft=[c];paths.remove(active);});}else{for(final e in paths.entries){if(e.value.contains(c)){setState((){active=e.key;draft=[c];paths.remove(e.key);});break;}}}}
  void moveTo(int c){if(active==null||draft.isEmpty||draft.contains(c))return;final last=draft.last;if((last%w-c%w).abs()+(last~/w-c~/w).abs()!=1)return;if(colorFor(c)!=null&&colorFor(c)!=active)return;setState((){draft.add(c);moves++;if(endpoints[c]==active&&c!=draft.first){paths[active!]=List.of(draft);active=null;draft=[];if([0,1,2].every(paths.containsKey)){showDialog(context:context,barrierDismissible:false,builder:(ctx)=>AlertDialog(backgroundColor:panel,title:const Text('Уровень пройден! ✨'),content:Text('Ходов: $moves'),actions:[TextButton(onPressed:(){Navigator.pop(ctx);Navigator.pop(context,widget.number);},child:const Text('ДАЛЕЕ'))]));}}});}
  void reset()=>setState(() { paths.clear(); active=null; draft=[]; moves=0; });
