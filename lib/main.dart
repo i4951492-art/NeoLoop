@@ -25,7 +25,7 @@ class _HomePageState extends State<HomePage> {
  @override Widget build(BuildContext context)=>Scaffold(body:SafeArea(child:Padding(padding:const EdgeInsets.all(22),child:Column(crossAxisAlignment:CrossAxisAlignment.stretch,children:[
  const SizedBox(height:25),Row(children:[Container(width:54,height:54,decoration:BoxDecoration(gradient:const LinearGradient(colors:[cyan,Color(0xFF8B5CFF)]),borderRadius:BorderRadius.circular(17)),child:const Icon(Icons.all_inclusive,size:35)),
  const SizedBox(width:12),const Column(crossAxisAlignment:CrossAxisAlignment.start,children:[Text('NeoLoop',style:TextStyle(fontSize:34,fontWeight:FontWeight.w900)),Text('Простые ходы. Бесконечное удовольствие.',style:TextStyle(color:Colors.white70,fontSize:11))])]),
- const Spacer(),Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:panel,borderRadius:BorderRadius.circular(28),border:Border.all(color:cyan.withOpacity(.35))),
+ const Spacer(),Container(padding:const EdgeInsets.all(22),decoration:BoxDecoration(color:panel,borderRadius:BorderRadius.circular(28),border:Border.all(color:cyan.withValues(alpha: .35))),
  child:Column(children:[const Icon(Icons.blur_circular,size:75,color:cyan),Text('УРОВЕНЬ $level',style:const TextStyle(color:cyan,letterSpacing:2,fontWeight:FontWeight.bold)),const SizedBox(height:10),
  const Text('Соедини одинаковые цвета',textAlign:TextAlign.center,style:TextStyle(fontSize:23,fontWeight:FontWeight.bold)),Text('Пройдено уровней: $completed из 30',style:const TextStyle(color:Colors.white70)),
  const SizedBox(height:20),FilledButton(onPressed:_play,style:FilledButton.styleFrom(backgroundColor:cyan,foregroundColor:bg,minimumSize:const Size.fromHeight(54)),child:const Text('ИГРАТЬ',style:TextStyle(fontWeight:FontWeight.w900)))])),
@@ -58,7 +58,7 @@ class GridPainter extends CustomPainter{
  for(int y=0;y<h;y++){for(int x=0;x<w;x++){canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(x*cw+2,y*ch+2,cw-4,ch-4),const Radius.circular(7)),grid);}}
  void line(List<int> p,Color color){if(p.isEmpty)return;final path=Path();for(int i=0;i<p.length;i++){final c=p[i];final o=Offset((c%w+.5)*cw,(c~/w+.5)*ch);if(i==0)path.moveTo(o.dx,o.dy);else path.lineTo(o.dx,o.dy);}canvas.drawPath(path,Paint()..color=color..strokeWidth=cw*.18..strokeCap=StrokeCap.round..style=PaintingStyle.stroke);}
  for(final e in paths.entries)line(e.value,palette[e.key]);if(active!=null)line(draft,palette[active!]);
- for(final e in endpoints.entries){final o=Offset((e.key%w+.5)*cw,(e.key~/w+.5)*ch);canvas.drawCircle(o,cw*.25,Paint()..color=palette[e.value].withOpacity(.25));canvas.drawCircle(o,cw*.18,Paint()..color=palette[e.value]);canvas.drawCircle(o,cw*.07,Paint()..color=Colors.white);}
+ for(final e in endpoints.entries){final o=Offset((e.key%w+.5)*cw,(e.key~/w+.5)*ch);canvas.drawCircle(o,cw*.25,Paint()..color=palette[e.value].palette[e.value].withValues(alpha: .25);canvas.drawCircle(o,cw*.18,Paint()..color=palette[e.value]);canvas.drawCircle(o,cw*.07,Paint()..color=Colors.white);}
  }
  @override bool shouldRepaint(covariant GridPainter old)=>true;
 }
