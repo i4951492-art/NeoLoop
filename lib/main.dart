@@ -1,4 +1,24 @@
-import 'dart:math';
+name: neoloop
+description: NeoLoop - logic puzzle game
+publish_to: 'none'
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.0.0 <4.0.0'
+
+dependencies:
+  flutter:
+    sdk: flutter
+  shared_preferences: ^2.3.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^4.0.0
+
+flutter:
+  uses-material-design: true
+    import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -73,8 +93,6 @@ const Map<String, Map<String, String>> strings = {
     'country': 'Страна разработки',
     'description':
         'NeoLoop — логическая головоломка, в которой игрок соединяет пары цветных точек непрерывными линиями и заполняет всё поле. Уровни создаются автоматически, а сложность растёт по мере прохождения. Игра включает подсказки, сохранение прогресса и подготовку к соревновательным режимам.',
-    'uzName': 'O‘zbekcha',
-    'languageName': 'Русский',
     'coming': 'Скоро появится в следующих обновлениях.',
     'levelSelect': 'Выбери уровень',
     'admin': 'Администратор',
@@ -113,8 +131,6 @@ const Map<String, Map<String, String>> strings = {
     'country': 'Ishlab chiqilgan mamlakat',
     'description':
         'NeoLoop — mantiqiy boshqotirma: o‘yinchi bir xil rangdagi nuqtalarni uzluksiz chiziqlar bilan ulab, butun maydonni to‘ldiradi. Bosqichlar avtomatik yaratiladi va qiyinlik oshib boradi. O‘yinda maslahatlar va jarayonni saqlash mavjud.',
-    'uzName': 'O‘zbekcha',
-    'languageName': 'Русский',
     'coming': 'Keyingi yangilanishlarda paydo bo‘ladi.',
     'levelSelect': 'Bosqichni tanlang',
     'admin': 'Administrator',
@@ -153,8 +169,6 @@ const Map<String, Map<String, String>> strings = {
     'country': 'Country of development',
     'description':
         'NeoLoop is a logic puzzle where players connect matching colored dots with continuous paths and fill the entire board. Levels are generated automatically and become more challenging over time. The game includes hints and local progress saving, with competitive modes planned.',
-    'uzName': 'Uzbek',
-    'languageName': 'English',
     'coming': 'Coming in a future update.',
     'levelSelect': 'Choose a level',
     'admin': 'Administrator',
@@ -193,8 +207,6 @@ const Map<String, Map<String, String>> strings = {
     'country': 'Країна розробки',
     'description':
         'NeoLoop — логічна головоломка, у якій гравець з’єднує пари кольорових точок безперервними лініями та заповнює все поле. Рівні генеруються автоматично, а складність поступово зростає. Є підказки та збереження прогресу.',
-    'uzName': 'Узбецька',
-    'languageName': 'Українська',
     'coming': 'З’явиться в майбутніх оновленнях.',
     'levelSelect': 'Оберіть рівень',
     'admin': 'Адміністратор',
@@ -233,8 +245,6 @@ const Map<String, Map<String, String>> strings = {
     'country': 'Әзірленген ел',
     'description':
         'NeoLoop — ойыншы бір түсті нүктелерді үздіксіз сызықтармен қосып, бүкіл өрісті толтыратын логикалық басқатырғыш. Деңгейлер автоматты түрде жасалады, ал қиындық біртіндеп артады. Кеңестер мен прогресті сақтау мүмкіндігі бар.',
-    'uzName': 'Өзбекше',
-    'languageName': 'Қазақша',
     'coming': 'Келесі жаңартуларда қосылады.',
     'levelSelect': 'Деңгейді таңдаңыз',
     'admin': 'Әкімші',
@@ -421,165 +431,195 @@ class _HomePageState extends State<HomePage> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const SizedBox(height: 18),
-                Row(
-                  children: [
-                    Container(
-                      width: 54,
-                      height: 54,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [cyan, Color(0xFF8B5CFF)],
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(22),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SizedBox(height: 18),
+              Row(
+                children: [
+                  Container(
+                    width: 54,
+                    height: 54,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [cyan, Color(0xFF8B5CFF)],
+                      ),
+                      borderRadius: BorderRadius.circular(17),
+                    ),
+                    child: const Icon(Icons.all_inclusive, size: 35),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          'NeoLoop',
+                          style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(17),
-                      ),
-                      child: const Icon(Icons.all_inclusive, size: 35),
+                        Text(
+                          tr('tagline'),
+                          style: const TextStyle(
+                            color: Colors.white70,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text(
-                            'NeoLoop',
-                            style: TextStyle(
-                              fontSize: 32,
-                              fontWeight: FontWeight.w900,
-                            ),
-                          ),
-                          Text(
-                            tr('tagline'),
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
+                  ),
+                  IconButton(
+                    onPressed: () async {
+                      await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const SettingsPage(),
+                        ),
+                      );
+                      setState(() {});
+                    },
+                    icon: const Icon(Icons.settings),
+                  ),
+                ],
+              ),
+              const Spacer(),
+              Container(
+                padding: const EdgeInsets.all(22),
+                decoration: BoxDecoration(
+                  color: panel,
+                  borderRadius: BorderRadius.circular(28),
+                  border: Border.all(color: cyan.withValues(alpha: 0.35)),
+                ),
+                child: Column(
+                  children: [
+                    const Icon(Icons.blur_circular, size: 72, color: cyan),
+                    Text(
+                      '${tr('level')} ${AppPrefs.level}',
+                      style: const TextStyle(
+                        color: cyan,
+                        letterSpacing: 2,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                    IconButton(
-                      onPressed: () async {
-                        await Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const SettingsPage(),
-                          ),
-                        );
-                        setState(() {});
-                      },
-                      icon: const Icon(Icons.settings),
+                    const SizedBox(height: 12),
+                    Text(
+                      tr('connect'),
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        fontSize: 21,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '15×15 • ${LevelGenerator.colorCount(AppPrefs.level)}',
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    Text(
+                      '${tr('done')}: ${AppPrefs.completed}/$totalLevels',
+                      style: const TextStyle(color: Colors.white70),
+                    ),
+                    const SizedBox(height: 18),
+                    FilledButton(
+                      onPressed: _play,
+                      style: FilledButton.styleFrom(
+                        backgroundColor: cyan,
+                        foregroundColor: bg,
+                        minimumSize: const Size.fromHeight(52),
+                      ),
+                      child: Text(
+                        tr('play'),
+                        style: const TextStyle(fontWeight: FontWeight.w900),
+                      ),
                     ),
                   ],
                 ),
-                const Spacer(),
-                Container(
-                  padding: const EdgeInsets.all(22),
-                  decoration: BoxDecoration(
-                    color: panel,
-                    borderRadius: BorderRadius.circular(28),
-                    border: Border.all(color: cyan.withOpacity(0.35)),
-                  ),
-                  child: Column(
-                    children: [
-                      const Icon(Icons.blur_circular, size: 72, color: cyan),
-                      Text(
-                        '${tr('level')} ${AppPrefs.level}',
-                        style: const TextStyle(
-                          color: cyan,
-                          letterSpacing: 2,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        tr('connect'),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 21,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        '15×15 • ${LevelGenerator.colorCount(AppPrefs.level)}',
-                        style: const TextStyle(color: Colors.white70),
-                      ),
-                      Text(
-                        '${tr('done')}: ${AppPrefs.completed}/$totalLevels',
-                        style: const TextStyle(color: Colors.white70),
-                      ),
-                      const SizedBox(height: 18),
-                      FilledButton(
-                        onPressed: _play,
-                        style: FilledButton.styleFrom(
-                          backgroundColor: cyan,
-                          foregroundColor: bg,
-                          minimumSize: const Size.fromHeight(52),
-                        ),
-                        child: Text(
-                          tr('play'),
-                          style: const TextStyle(fontWeight: FontWeight.w900),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                const SizedBox(height: 12),
-                _MenuButton(
-                  icon: Icons.grid_view,
-                  label: tr('levels'),
-                  onTap: () async {
-                    final selected = await Navigator.push<int>(
-                      context,
-                      MaterialPageRoute(builder: (_) => const LevelsPage()),
-                    );
-                    if (selected != null) {
-                      AppPrefs.level = selected;
-                      await AppPrefs.save();
-                      setState(() {});
-                    }
-                  },
-                ),
-                _MenuButton(
-                  icon: Icons.emoji_events_outlined,
-                  label: tr('leaderboard'),
-                  onTap: () => Navigator.push(
+              ),
+              const SizedBox(height: 12),
+              _MenuButton(
+                icon: Icons.grid_view,
+                label: tr('levels'),
+                onTap: () async {
+                  final selected = await Navigator.push<int>(
                     context,
-                    MaterialPageRoute(
-                      builder: (_) => const InfoPage(
-                        titleKey: 'leaderboard',
-                        icon: Icons.emoji_events,
-                        bodyKey: 'coming',
-                      ),
+                    MaterialPageRoute(builder: (_) => const LevelsPage()),
+                  );
+                  if (selected != null) {
+                    AppPrefs.level = selected;
+                    await AppPrefs.save();
+                    setState(() {});
+                  }
+                },
+              ),
+              _MenuButton(
+                icon: Icons.emoji_events_outlined,
+                label: tr('leaderboard'),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const InfoPage(
+                      titleKey: 'leaderboard',
+                      icon: Icons.emoji_events,
+                      bodyKey: 'coming',
                     ),
                   ),
                 ),
-                _MenuButton(
-                  icon: Icons.sports_esports_outlined,
-                  label: tr('duel'),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (_) => const InfoPage(
-                        titleKey: 'duel',
-                        icon: Icons.bolt,
-                        bodyKey: 'coming',
-                      ),
+              ),
+              _MenuButton(
+                icon: Icons.sports_esports_outlined,
+                label: tr('duel'),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => const InfoPage(
+                      titleKey: 'duel',
+                      icon: Icons.bolt,
+                      bodyKey: 'coming',
                     ),
                   ),
                 ),
-                _MenuButton(
-                  icon: Icons.info_outline,
-                  label: tr('about'),
-                  onTap: () => Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (_) => const AboutPage()),
-                  ),
-            
+              ),
+              _MenuButton(
+                icon: Icons.info_outline,
+                label: tr('about'),
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AboutPage()),
+                ),
+              ),
+              const Spacer(),
+              Text(
+                tr('offline'),
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.white38, fontSize: 11),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MenuButton extends StatelessWidget {
+  final IconData icon;
+  final String label;
+  final VoidCallback onTap;
+
+  const _MenuButton({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      paddi
