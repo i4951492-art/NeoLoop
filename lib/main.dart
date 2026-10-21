@@ -1,3 +1,4 @@
+// ignore_for_file: prefer_const_constructors, const_with_non_const
 import 'dart:async';
 import 'dart:math';
 
