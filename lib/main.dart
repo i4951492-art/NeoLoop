@@ -660,7 +660,7 @@ class LevelsPage extends StatelessWidget {
                   n == AppPrefs.level ? accent : panel,
               foregroundColor:
                   n == AppPrefs.level ? bg : Colors.white70,
-              shape: RoundedRectangleBorder(
+              shape:const RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
             ),
