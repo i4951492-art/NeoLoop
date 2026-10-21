@@ -9,14 +9,12 @@ const Color bg = Color(0xFF061226);
 const Color panel = Color(0xFF0C1E39);
 const Color cyan = Color(0xFF38D8FF);
 const int totalLevels = 30;
-const int boardSize = 15;
 
 class AppPrefs {
   static const languages = ['ru', 'uz', 'en', 'uk', 'kk'];
   static String language = 'ru';
   static bool sound = true;
   static bool effects = true;
-  static bool adsEnabled = true;
   static int level = 1;
   static int completed = 0;
 
@@ -26,7 +24,6 @@ class AppPrefs {
     if (!languages.contains(language)) language = 'ru';
     sound = p.getBool('sound') ?? true;
     effects = p.getBool('effects') ?? true;
-    adsEnabled = p.getBool('adsEnabled') ?? true;
     level = (p.getInt('level') ?? 1).clamp(1, totalLevels).toInt();
     completed = (p.getInt('completed') ?? 0).clamp(0, totalLevels).toInt();
   }
@@ -36,7 +33,6 @@ class AppPrefs {
     await p.setString('language', language);
     await p.setBool('sound', sound);
     await p.setBool('effects', effects);
-    await p.setBool('adsEnabled', adsEnabled);
     await p.setInt('level', level);
     await p.setInt('completed', completed);
   }
@@ -64,7 +60,6 @@ const Map<String, Map<String, String>> strings = {
     'language': 'Язык',
     'sound': 'Звук',
     'effects': 'Эффекты',
-    'ads': 'Реклама включена',
     'done': 'Пройдено уровней',
     'offline': 'Офлайн • Прогресс сохраняется',
     'noHints': 'Подсказки закончились',
@@ -75,11 +70,6 @@ const Map<String, Map<String, String>> strings = {
         'NeoLoop — логическая головоломка, в которой игрок соединяет пары цветных точек непрерывными линиями и заполняет всё поле. Уровни создаются автоматически, а сложность растёт по мере прохождения. Игра включает подсказки, сохранение прогресса и подготовку к соревновательным режимам.',
     'coming': 'Скоро появится в следующих обновлениях.',
     'levelSelect': 'Выбери уровень',
-    'admin': 'Администратор',
-    'adminInfo':
-        'Административные инструменты будут доступны после безопасной серверной настройки.',
-    'adInfo':
-        'Рекламная интеграция ещё не подключена. Здесь пока нет реальных объявлений или дохода.',
   },
   'uz': {
     'tagline': 'Ranglarni ulang. Maydonni to‘ldiring.',
@@ -102,7 +92,6 @@ const Map<String, Map<String, String>> strings = {
     'language': 'Til',
     'sound': 'Ovoz',
     'effects': 'Effektlar',
-    'ads': 'Reklama yoqilgan',
     'done': 'Tugatilgan bosqichlar',
     'offline': 'Oflayn • Jarayon saqlanadi',
     'noHints': 'Maslahatlar tugadi',
@@ -113,11 +102,6 @@ const Map<String, Map<String, String>> strings = {
         'NeoLoop — mantiqiy boshqotirma: o‘yinchi bir xil rangdagi nuqtalarni uzluksiz chiziqlar bilan ulab, butun maydonni to‘ldiradi. Bosqichlar avtomatik yaratiladi va qiyinlik oshib boradi. O‘yinda maslahatlar va jarayonni saqlash mavjud.',
     'coming': 'Keyingi yangilanishlarda paydo bo‘ladi.',
     'levelSelect': 'Bosqichni tanlang',
-    'admin': 'Administrator',
-    'adminInfo':
-        'Administrator vositalari xavfsiz server sozlamasidan keyin qo‘shiladi.',
-    'adInfo':
-        'Reklama hali ulanmagan. Hozircha haqiqiy reklama yoki daromad yo‘q.',
   },
   'en': {
     'tagline': 'Connect colors. Fill the board.',
@@ -140,7 +124,6 @@ const Map<String, Map<String, String>> strings = {
     'language': 'Language',
     'sound': 'Sound',
     'effects': 'Effects',
-    'ads': 'Ads enabled',
     'done': 'Levels completed',
     'offline': 'Offline • Progress saved',
     'noHints': 'No hints left',
@@ -151,11 +134,6 @@ const Map<String, Map<String, String>> strings = {
         'NeoLoop is a logic puzzle where players connect matching colored dots with continuous paths and fill the entire board. Levels are generated automatically and become more challenging over time. The game includes hints and local progress saving, with competitive modes planned.',
     'coming': 'Coming in a future update.',
     'levelSelect': 'Choose a level',
-    'admin': 'Administrator',
-    'adminInfo':
-        'Admin tools will be available after secure server configuration.',
-    'adInfo':
-        'Ads are not integrated yet. No live ads or revenue are active at this stage.',
   },
   'uk': {
     'tagline': 'З’єднуй кольори. Заповнюй поле.',
@@ -178,7 +156,6 @@ const Map<String, Map<String, String>> strings = {
     'language': 'Мова',
     'sound': 'Звук',
     'effects': 'Ефекти',
-    'ads': 'Рекламу ввімкнено',
     'done': 'Пройдено рівнів',
     'offline': 'Офлайн • Прогрес збережено',
     'noHints': 'Підказки закінчилися',
@@ -189,11 +166,6 @@ const Map<String, Map<String, String>> strings = {
         'NeoLoop — логічна головоломка, у якій гравець з’єднує пари кольорових точок безперервними лініями та заповнює все поле. Рівні генеруються автоматично, а складність поступово зростає. Є підказки та збереження прогресу.',
     'coming': 'З’явиться в майбутніх оновленнях.',
     'levelSelect': 'Оберіть рівень',
-    'admin': 'Адміністратор',
-    'adminInfo':
-        'Інструменти адміністратора з’являться після безпечного налаштування сервера.',
-    'adInfo':
-        'Рекламу ще не підключено. Наразі немає реальних оголошень або доходу.',
   },
   'kk': {
     'tagline': 'Түстерді қос. Өрісті толтыр.',
@@ -216,7 +188,6 @@ const Map<String, Map<String, String>> strings = {
     'language': 'Тіл',
     'sound': 'Дыбыс',
     'effects': 'Әсерлер',
-    'ads': 'Жарнама қосулы',
     'done': 'Өтілген деңгейлер',
     'offline': 'Офлайн • Үдеріс сақталады',
     'noHints': 'Кеңестер таусылды',
@@ -227,11 +198,6 @@ const Map<String, Map<String, String>> strings = {
         'NeoLoop — ойыншы бір түсті нүктелерді үздіксіз сызықтармен қосып, бүкіл өрісті толтыратын логикалық басқатырғыш. Деңгейлер автоматты түрде жасалады, ал қиындық біртіндеп артады. Кеңестер мен прогресті сақтау мүмкіндігі бар.',
     'coming': 'Келесі жаңартуларда қосылады.',
     'levelSelect': 'Деңгейді таңдаңыз',
-    'admin': 'Әкімші',
-    'adminInfo':
-        'Әкімші құралдары қауіпсіз сервер бапталғаннан кейін қосылады.',
-    'adInfo':
-        'Жарнама әлі қосылған жоқ. Қазір нақты жарнама да, табыс та жоқ.',
   },
 };
 
@@ -246,19 +212,26 @@ class LevelData {
 }
 
 class LevelGenerator {
-  static const int size = boardSize;
+  /// Размер поля: 1 уровень = 8×8, каждый следующий +1, максимум 30×30
+  static int sizeFor(int level) => (7 + level).clamp(8, 30);
 
   static double _t(int level) =>
       ((level.clamp(1, totalLevels) - 1) / (totalLevels - 1)).toDouble();
 
-  static int colorCount(int level) => (6 + 12 * _t(level)).round();
+  static int colorCount(int level) {
+    final size = sizeFor(level);
+    final maxColors = (size * size / 4).floor(); // чтобы всегда хватало клеток
+    final raw = (4 + 10 * _t(level)).round();
+    return raw.clamp(4, maxColors);
+  }
 
   static int shuffleIterations(int level) =>
-      (150 + 30000 * _t(level)).round();
+      (80 + 25000 * _t(level)).round();
 
   static LevelData generate(int level) {
+    final size = sizeFor(level);
     final rnd = Random(level * 7919 + 104729);
-    const n = size * size;
+    final n = size * size;
     final path = <int>[];
     for (int y = 0; y < size; y++) {
       for (int i = 0; i < size; i++) {
@@ -302,12 +275,13 @@ class LevelGenerator {
     }
 
     final k = colorCount(level);
+    final minSeg = size <= 10 ? 3 : 4;
     final weights =
         List<double>.generate(k, (_) => 0.4 + rnd.nextDouble() * 1.6);
     final sum = weights.fold<double>(0, (a, b) => a + b);
-    final rest = n - k * 4;
-    final lengths =
-        List<int>.generate(k, (i) => 4 + (rest * weights[i] / sum).floor());
+    final rest = n - k * minSeg;
+    final lengths = List<int>.generate(
+        k, (i) => minSeg + (rest * weights[i] / sum).floor());
     var left = n - lengths.fold<int>(0, (a, b) => a + b);
     while (left-- > 0) {
       lengths[rnd.nextInt(k)]++;
@@ -411,6 +385,9 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final size = LevelGenerator.sizeFor(AppPrefs.level);
+    final colors = LevelGenerator.colorCount(AppPrefs.level);
+
     return Scaffold(
       body: SafeArea(
         child: Padding(
@@ -421,18 +398,36 @@ class _HomePageState extends State<HomePage> {
               const SizedBox(height: 18),
               Row(
                 children: [
+                  // Красивый логотип
                   Container(
-                    width: 54,
-                    height: 54,
+                    width: 58,
+                    height: 58,
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(
-                        colors: [cyan, Color(0xFF8B5CFF)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                        colors: [
+                          Color(0xFF38D8FF),
+                          Color(0xFF8B5CFF),
+                          Color(0xFFFF6B9D),
+                        ],
                       ),
-                      borderRadius: BorderRadius.circular(17),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: cyan.withValues(alpha: 0.45),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
                     ),
-                    child: const Icon(Icons.all_inclusive, size: 35),
+                    child: const Icon(
+                      Icons.hub_rounded,
+                      size: 32,
+                      color: Colors.white,
+                    ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 14),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -442,6 +437,7 @@ class _HomePageState extends State<HomePage> {
                           style: TextStyle(
                             fontSize: 32,
                             fontWeight: FontWeight.w900,
+                            letterSpacing: -0.5,
                           ),
                         ),
                         Text(
@@ -498,7 +494,7 @@ class _HomePageState extends State<HomePage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      '15×15 • ${LevelGenerator.colorCount(AppPrefs.level)}',
+                      '$size×$size • $colors',
                       style: const TextStyle(color: Colors.white70),
                     ),
                     Text(
@@ -700,28 +696,6 @@ class _SettingsPageState extends State<SettingsPage> {
               await AppPrefs.save();
             },
           ),
-          SwitchListTile(
-            title: Text(tr('ads')),
-            value: AppPrefs.adsEnabled,
-            onChanged: (v) async {
-              setState(() => AppPrefs.adsEnabled = v);
-              await AppPrefs.save();
-            },
-          ),
-          const SizedBox(height: 12),
-          Card(
-            color: panel,
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Text(tr('adInfo')),
-            ),
-          ),
-          const SizedBox(height: 12),
-          ListTile(
-            leading: const Icon(Icons.admin_panel_settings_outlined),
-            title: Text(tr('admin')),
-            subtitle: Text(tr('adminInfo')),
-          ),
         ],
       ),
     );
@@ -738,7 +712,31 @@ class AboutPage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(20),
         children: [
-          const Icon(Icons.all_inclusive, color: cyan, size: 80),
+          Container(
+            width: 90,
+            height: 90,
+            margin: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [
+                  Color(0xFF38D8FF),
+                  Color(0xFF8B5CFF),
+                  Color(0xFFFF6B9D),
+                ],
+              ),
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: cyan.withValues(alpha: 0.4),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: const Icon(Icons.hub_rounded, size: 48, color: Colors.white),
+          ),
           const Text(
             'NeoLoop',
             textAlign: TextAlign.center,
@@ -768,7 +766,7 @@ class AboutPage extends StatelessWidget {
           const ListTile(
             leading: Icon(Icons.info_outline),
             title: Text('Version'),
-            subtitle: Text('1.0.0'),
+            subtitle: Text('1.1.0'),
           ),
         ],
       ),
@@ -1240,3 +1238,4 @@ class GridPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant GridPainter old) => true;
 }
+
