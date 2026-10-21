@@ -218,7 +218,6 @@ class LevelData {
 }
 
 class LevelGenerator {
-  /// 1 уровень = 5×5, каждый следующий +1, максимум 30×30
   static int sizeFor(int level) => (4 + level).clamp(5, 30);
 
   static double _t(int level) =>
@@ -317,7 +316,6 @@ List<Color> buildPalette(int n) => List.generate(
       ).toColor(),
     );
 
-/// Цвет «стекла» зависит от уровня
 Color glassColorForLevel(int level) {
   final hue = (level * 27.0) % 360;
   return HSVColor.fromAHSV(1, hue, 0.25, 0.35).toColor();
@@ -713,7 +711,7 @@ class _SettingsPageState extends State<SettingsPage> {
           SwitchListTile(
             title: Text(tr('sound')),
             value: AppPrefs.sound,
-            activeColor: accent,
+            activeThumbColor: accent,
             onChanged: (v) async {
               setState(() => AppPrefs.sound = v);
               await AppPrefs.save();
@@ -722,7 +720,7 @@ class _SettingsPageState extends State<SettingsPage> {
           SwitchListTile(
             title: Text(tr('effects')),
             value: AppPrefs.effects,
-            activeColor: accent,
+            activeThumbColor: accent,
             onChanged: (v) async {
               setState(() => AppPrefs.effects = v);
               await AppPrefs.save();
@@ -1038,7 +1036,7 @@ class _GamePageState extends State<GamePage> {
           Navigator.pop(context, widget.number);
         },
         onTimeout: () {
-          Navigator.pop(ctx); // просто закрываем, уровень не засчитываем как пройденный дальше
+          Navigator.pop(ctx);
         },
       ),
     );
@@ -1166,7 +1164,6 @@ class _GamePageState extends State<GamePage> {
   }
 }
 
-/// Диалог победы с таймером 3 секунды
 class _WinDialog extends StatefulWidget {
   final int moves;
   final int hintsUsed;
@@ -1294,7 +1291,6 @@ class GridPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cell = size.width / n;
 
-    // Фон «стекла»
     final bgPaint = Paint()..color = glassColor.withValues(alpha: 0.22);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -1304,7 +1300,6 @@ class GridPainter extends CustomPainter {
       bgPaint,
     );
 
-    // Клетчатый узор (прозрачное стекло)
     final checker = Paint()..style = PaintingStyle.fill;
     for (int y = 0; y < n; y++) {
       for (int x = 0; x < n; x++) {
@@ -1320,7 +1315,6 @@ class GridPainter extends CustomPainter {
       }
     }
 
-    // Тонкие линии сетки
     final grid = Paint()
       ..color = Colors.white.withValues(alpha: 0.12)
       ..style = PaintingStyle.stroke
@@ -1368,7 +1362,6 @@ class GridPainter extends CustomPainter {
       drawPath(draft, colors[active!]);
     }
 
-    // Цветные точки
     for (final e in endpoints.entries) {
       final c = e.key;
       final color = colors[e.value];
