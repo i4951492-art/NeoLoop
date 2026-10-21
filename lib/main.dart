@@ -336,7 +336,6 @@ List<Color> buildPalette(int n) => List.generate(
         i % 3 == 0 ? 1.0 : 0.88,
       ).toColor(),
     );
-
 class NeoLoopApp extends StatelessWidget {
   const NeoLoopApp({super.key});
 
@@ -602,4 +601,642 @@ class _MenuButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      paddi
+      padding: const EdgeInsets.only(top: 8),
+      child: OutlinedButton.icon(
+        onPressed: onTap,
+        icon: Icon(icon),
+        label: Text(label),
+        style: OutlinedButton.styleFrom(
+          foregroundColor: Colors.white,
+          side: BorderSide(color: cyan.withValues(alpha: 0.25)),
+          minimumSize: const Size.fromHeight(46),
+          alignment: Alignment.centerLeft,
+        ),
+      ),
+    );
+  }
+}
+
+class LevelsPage extends StatelessWidget {
+  const LevelsPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(tr('levelSelect'))),
+      body: GridView.builder(
+        padding: const EdgeInsets.all(16),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 5,
+          crossAxisSpacing: 8,
+          mainAxisSpacing: 8,
+        ),
+        itemCount: totalLevels,
+        itemBuilder: (context, i) {
+          final n = i + 1;
+          final unlocked = n <= AppPrefs.completed + 1;
+          return FilledButton(
+            onPressed: unlocked ? () => Navigator.pop(context, n) : null,
+            style: FilledButton.styleFrom(
+              backgroundColor: n == AppPrefs.level ? cyan : panel,
+              foregroundColor: n == AppPrefs.level ? bg : Colors.white,
+            ),
+            child: Text('$n'),
+          );
+        },
+      ),
+    );
+  }
+}
+class SettingsPage extends StatefulWidget {
+  const SettingsPage({super.key});
+
+  @override
+  State<SettingsPage> createState() => _SettingsPageState();
+}
+
+class _SettingsPageState extends State<SettingsPage> {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(tr('settings'))),
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          ListTile(
+            title: Text(tr('language')),
+            leading: const Icon(Icons.language),
+            trailing: DropdownButton<String>(
+              value: AppPrefs.language,
+              items: const [
+                DropdownMenuItem(value: 'ru', child: Text('🇷🇺 Русский')),
+                DropdownMenuItem(value: 'uz', child: Text('🇺🇿 O‘zbekcha')),
+                DropdownMenuItem(value: 'en', child: Text('🇬🇧 English')),
+                DropdownMenuItem(value: 'uk', child: Text('🇺🇦 Українська')),
+                DropdownMenuItem(value: 'kk', child: Text('🇰🇿 Қазақша')),
+              ],
+              onChanged: (v) async {
+                if (v != null) {
+                  AppPrefs.language = v;
+                  await AppPrefs.save();
+                  setState(() {});
+                }
+              },
+            ),
+          ),
+          SwitchListTile(
+            title: Text(tr('sound')),
+            value: AppPrefs.sound,
+            onChanged: (v) async {
+              setState(() => AppPrefs.sound = v);
+              await AppPrefs.save();
+            },
+          ),
+          SwitchListTile(
+            title: Text(tr('effects')),
+            value: AppPrefs.effects,
+            onChanged: (v) async {
+              setState(() => AppPrefs.effects = v);
+              await AppPrefs.save();
+            },
+          ),
+          SwitchListTile(
+            title: Text(tr('ads')),
+            value: AppPrefs.adsEnabled,
+            onChanged: (v) async {
+              setState(() => AppPrefs.adsEnabled = v);
+              await AppPrefs.save();
+            },
+          ),
+          const SizedBox(height: 12),
+          Card(
+            color: panel,
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Text(tr('adInfo')),
+            ),
+          ),
+          const SizedBox(height: 12),
+          ListTile(
+            leading: const Icon(Icons.admin_panel_settings_outlined),
+            title: Text(tr('admin')),
+            subtitle: Text(tr('adminInfo')),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class AboutPage extends StatelessWidget {
+  const AboutPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(tr('about'))),
+      body: ListView(
+        padding: const EdgeInsets.all(20),
+        children: [
+          const Icon(Icons.all_inclusive, color: cyan, size: 80),
+          const Text(
+            'NeoLoop',
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            tr('description'),
+            style: const TextStyle(fontSize: 16, height: 1.5),
+          ),
+          const SizedBox(height: 22),
+          ListTile(
+            leading: const Icon(Icons.person_outline),
+            title: Text(tr('developer')),
+            subtitle: const Text('Saidov Islom'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.flag_outlined),
+            title: Text(tr('country')),
+            subtitle: const Text('Uzbekistan / O‘zbekiston / Узбекистан'),
+          ),
+          const ListTile(
+            leading: Icon(Icons.phone_android),
+            title: Text('Платформа / Platform'),
+            subtitle: Text('Android'),
+          ),
+          const ListTile(
+            leading: Icon(Icons.info_outline),
+            title: Text('Version'),
+            subtitle: Text('1.0.0'),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class InfoPage extends StatelessWidget {
+  final String titleKey;
+  final String bodyKey;
+  final IconData icon;
+
+  const InfoPage({
+    super.key,
+    required this.titleKey,
+    required this.icon,
+    required this.bodyKey,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(tr(titleKey))),
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(28),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(icon, size: 72, color: cyan),
+              const SizedBox(height: 18),
+              Text(
+                tr(bodyKey),
+                textAlign: TextAlign.center,
+                style: const TextStyle(fontSize: 17),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class GamePage extends StatefulWidget {
+  final int number;
+  const GamePage({super.key, required this.number});
+
+  @override
+  State<GamePage> createState() => _GamePageState();
+}
+
+class _GamePageState extends State<GamePage> {
+  static const maxHints = 3;
+
+  late final LevelData data = LevelGenerator.generate(widget.number);
+  late final List<Color> colors = buildPalette(data.colors);
+  late final int n = data.size;
+  late final List<int> owner = List<int>.filled(n * n, -1);
+
+  final Map<int, List<int>> paths = {};
+  int? active;
+  List<int> draft = [];
+  int moves = 0;
+  int hintsLeft = maxHints;
+  bool won = false;
+
+  Map<int, int> get endpoints => data.endpoints;
+
+  void _rebuild() {
+    owner.fillRange(0, owner.length, -1);
+    for (final entry in paths.entries) {
+      for (final c in entry.value) {
+        owner[c] = entry.key;
+      }
+    }
+    if (active != null) {
+      for (final c in draft) {
+        owner[c] = active!;
+      }
+    }
+  }
+
+  bool _connected(int k) {
+    final p = paths[k];
+    return p != null &&
+        p.length >= 2 &&
+        endpoints[p.first] == k &&
+        endpoints[p.last] == k;
+  }
+
+  int get connectedCount =>
+      List.generate(data.colors, (i) => i).where(_connected).length;
+
+  int get filledPercent =>
+      (owner.where((v) => v >= 0).length * 100 / (n * n)).floor();
+
+  void _cut(int k, int cell) {
+    final p = paths[k];
+    if (p == null) return;
+    final i = p.indexOf(cell);
+    if (i < 2) {
+      paths.remove(k);
+    } else {
+      paths[k] = p.sublist(0, i);
+    }
+  }
+
+  void begin(int c) {
+    if (won) return;
+    if (endpoints.containsKey(c)) {
+      setState(() {
+        final k = endpoints[c]!;
+        paths.remove(k);
+        active = k;
+        draft = [c];
+        moves++;
+        _rebuild();
+      });
+    } else if (owner[c] >= 0 && paths.containsKey(owner[c])) {
+      setState(() {
+        final k = owner[c];
+        final p = paths[k]!;
+        final i = p.indexOf(c);
+        draft = p.sublist(0, i + 1);
+        paths.remove(k);
+        active = k;
+        moves++;
+        _rebuild();
+      });
+    }
+  }
+
+  void moveTo(int c) {
+    if (won || active == null || draft.isEmpty) return;
+    final last = draft.last;
+    if (c == last) return;
+
+    if (draft.length >= 2 && c == draft[draft.length - 2]) {
+      setState(() {
+        draft.removeLast();
+        _rebuild();
+      });
+      return;
+    }
+
+    if (draft.contains(c)) return;
+
+    final distance =
+        (last % n - c % n).abs() + (last ~/ n - c ~/ n).abs();
+    if (distance != 1) return;
+    if (endpoints.containsKey(c) && endpoints[c] != active) return;
+
+    var finished = false;
+    setState(() {
+      final other = owner[c];
+      if (other >= 0 && other != active) _cut(other, c);
+      draft.add(c);
+      if (endpoints[c] == active) {
+        paths[active!] = List.of(draft);
+        active = null;
+        draft = [];
+        finished = true;
+      }
+      _rebuild();
+    });
+    if (finished) _checkWin();
+  }
+
+  void endDrag() {
+    if (active == null) return;
+    setState(() {
+      if (draft.length >= 2) paths[active!] = List.of(draft);
+      active = null;
+      draft = [];
+      _rebuild();
+    });
+  }
+
+  bool _matchesSolution(int k) {
+    final p = paths[k];
+    if (p == null) return false;
+    final s = data.solution[k];
+    if (p.length != s.length) return false;
+
+    bool same(List<int> a, List<int> b) {
+      for (int i = 0; i < a.length; i++) {
+        if (a[i] != b[i]) return false;
+      }
+      return true;
+    }
+
+    return same(p, s) || same(p, s.reversed.toList());
+  }
+
+  void hint() {
+    if (won) return;
+    if (hintsLeft <= 0) {
+      _snack(tr('noHints'));
+      return;
+    }
+    final missing = [
+      for (int k = 0; k < data.colors; k++)
+        if (!_matchesSolution(k)) k
+    ];
+    if (missing.isEmpty) return;
+
+    final k = missing[Random().nextInt(missing.length)];
+    final sol = data.solution[k];
+    final set = sol.toSet();
+
+    setState(() {
+      active = null;
+      draft = [];
+      for (final other in paths.keys.toList()) {
+        if (other == k) continue;
+        final p = paths[other]!;
+        final i = p.indexWhere(set.contains);
+        if (i >= 0) {
+          if (i < 2) {
+            paths.remove(other);
+          } else {
+            paths[other] = p.sublist(0, i);
+          }
+        }
+      }
+      paths[k] = List.of(sol);
+      hintsLeft--;
+      _rebuild();
+    });
+    _snack('${tr('hintShown')} • $hintsLeft');
+    _checkWin();
+  }
+
+  void _snack(String s) {
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(s)));
+  }
+
+  void reset() {
+    setState(() {
+      paths.clear();
+      active = null;
+      draft = [];
+      moves = 0;
+      hintsLeft = maxHints;
+      _rebuild();
+    });
+  }
+
+  void _checkWin() {
+    if (won) return;
+    if (!List.generate(data.colors, (i) => i).every(_connected) ||
+        owner.contains(-1)) {
+      return;
+    }
+    won = true;
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: panel,
+        title: Text(tr('won')),
+        content: Text(
+          '${tr('moves')}: $moves\n${tr('hintsUsed')}: ${maxHints - hintsLeft}',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.pop(context, widget.number);
+            },
+            child: Text(tr('next')),
+          ),
+        ],
+      ),
+    );
+  }
+
+  int? _cellAt(Offset p, double cell) {
+    final x = (p.dx / cell).floor();
+    final y = (p.dy / cell).floor();
+    if (x < 0 || x >= n || y < 0 || y >= n) return null;
+    return y * n + x;
+  }
+    @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('${tr('level')} ${widget.number}'),
+        actions: [
+          IconButton(
+            tooltip: tr('hint'),
+            onPressed: hint,
+            icon: const Icon(Icons.lightbulb_outline),
+          ),
+          IconButton(
+            tooltip: tr('reset'),
+            onPressed: reset,
+            icon: const Icon(Icons.refresh),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 8, 12, 4),
+            child: Text(
+              '${tr('connect')}\n'
+              '${tr('connected')}: $connectedCount/${data.colors} • '
+              '${tr('filled')}: $filledPercent%',
+              textAlign: TextAlign.center,
+            ),
+          ),
+          Expanded(
+            child: Center(
+              child: AspectRatio(
+                aspectRatio: 1,
+                child: Padding(
+                  padding: const EdgeInsets.all(8),
+                  child: LayoutBuilder(
+                    builder: (context, box) {
+                      final cell = box.maxWidth / n;
+                      return GestureDetector(
+                        onPanStart: (d) {
+                          final c = _cellAt(d.localPosition, cell);
+                          if (c != null) begin(c);
+                        },
+                        onPanUpdate: (d) {
+                          final c = _cellAt(d.localPosition, cell);
+                          if (c != null) moveTo(c);
+                        },
+                        onPanEnd: (_) => endDrag(),
+                        onPanCancel: endDrag,
+                        child: CustomPaint(
+                          painter: GridPainter(
+                            n: n,
+                            endpoints: endpoints,
+                            paths: paths,
+                            draft: draft,
+                            active: active,
+                            owner: owner,
+                            colors: colors,
+                          ),
+                          child: const SizedBox.expand(),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 2, 16, 16),
+            child: Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton.icon(
+                    onPressed: reset,
+                    icon: const Icon(Icons.refresh),
+                    label: Text(tr('reset')),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: FilledButton.icon(
+                    onPressed: hint,
+                    icon: const Icon(Icons.lightbulb_outline),
+                    label: Text('${tr('hint')} ($hintsLeft)'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class GridPainter extends CustomPainter {
+  final int n;
+  final Map<int, int> endpoints;
+  final Map<int, List<int>> paths;
+  final List<int> draft;
+  final int? active;
+  final List<int> owner;
+  final List<Color> colors;
+
+  GridPainter({
+    required this.n,
+    required this.endpoints,
+    required this.paths,
+    required this.draft,
+    required this.active,
+    required this.owner,
+    required this.colors,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final cell = size.width / n;
+    final grid = Paint()
+      ..color = const Color(0xFF1C3555)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.7;
+
+    for (int y = 0; y < n; y++) {
+      for (int x = 0; x < n; x++) {
+        canvas.drawRect(
+          Rect.fromLTWH(x * cell, y * cell, cell, cell),
+          grid,
+        );
+      }
+    }
+
+    void drawPath(List<int> p, Color color) {
+      if (p.isEmpty) return;
+      final paint = Paint()
+        ..color = color
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = cell * 0.58
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round;
+      final glow = Paint()
+        ..color = color.withValues(alpha: 0.18)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = cell * 0.9
+        ..strokeCap = StrokeCap.round
+        ..strokeJoin = StrokeJoin.round
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+
+      final path = Path();
+      Offset center(int c) =>
+          Offset((c % n + 0.5) * cell, (c ~/ n + 0.5) * cell);
+
+      path.moveTo(center(p.first).dx, center(p.first).dy);
+      for (final c in p.skip(1)) {
+        final pt = center(c);
+        path.lineTo(pt.dx, pt.dy);
+      }
+      canvas.drawPath(path, glow);
+      canvas.drawPath(path, paint);
+    }
+
+    for (final e in paths.entries) {
+      drawPath(e.value, colors[e.key]);
+    }
+    if (active != null && draft.isNotEmpty) {
+      drawPath(draft, colors[active!]);
+    }
+
+    for (final e in endpoints.entries) {
+      final c = e.key;
+      final color = colors[e.value];
+      final center = Offset((c % n + 0.5) * cell, (c ~/ n + 0.5) * cell);
+      canvas.drawCircle(
+        center,
+        cell * 0.38,
+        Paint()..color = color.withValues(alpha: 0.22),
+      );
+      canvas.drawCircle(center, cell * 0.29, Paint()..color = color);
+      canvas.drawCircle(center, cell * 0.12, Paint()..color = bg);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant GridPainter old) => true;
+}
