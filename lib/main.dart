@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
@@ -5,9 +6,9 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(const NeoLoopApp());
 
-const Color bg = Color(0xFF061226);
-const Color panel = Color(0xFF0C1E39);
-const Color cyan = Color(0xFF38D8FF);
+const Color bg = Color(0xFF0B1426);
+const Color panel = Color(0xFF152238);
+const Color accent = Color(0xFF7EC8E3);
 const int totalLevels = 30;
 
 class AppPrefs {
@@ -44,7 +45,6 @@ const Map<String, Map<String, String>> strings = {
     'play': 'ИГРАТЬ',
     'settings': 'Настройки',
     'levels': 'Уровни',
-    'about': 'О проекте',
     'leaderboard': 'Таблица лидеров',
     'duel': 'Дуэль 1 на 1',
     'level': 'УРОВЕНЬ',
@@ -67,16 +67,17 @@ const Map<String, Map<String, String>> strings = {
     'developer': 'Разработчик',
     'country': 'Страна разработки',
     'description':
-        'NeoLoop — логическая головоломка, в которой игрок соединяет пары цветных точек непрерывными линиями и заполняет всё поле. Уровни создаются автоматически, а сложность растёт по мере прохождения. Игра включает подсказки, сохранение прогресса и подготовку к соревновательным режимам.',
+        'NeoLoop — логическая головоломка, в которой игрок соединяет пары цветных точек непрерывными линиями и заполняет всё поле. Уровни создаются автоматически, а сложность растёт по мере прохождения.',
     'coming': 'Скоро появится в следующих обновлениях.',
     'levelSelect': 'Выбери уровень',
+    'about': 'О проекте',
+    'timerHint': 'Нажми, чтобы перейти дальше',
   },
   'uz': {
     'tagline': 'Ranglarni ulang. Maydonni to‘ldiring.',
     'play': 'O‘YNASH',
     'settings': 'Sozlamalar',
     'levels': 'Bosqichlar',
-    'about': 'Loyiha haqida',
     'leaderboard': 'Yetakchilar jadvali',
     'duel': '1 ga 1 duel',
     'level': 'BOSQICH',
@@ -99,16 +100,17 @@ const Map<String, Map<String, String>> strings = {
     'developer': 'Dasturchi',
     'country': 'Ishlab chiqilgan mamlakat',
     'description':
-        'NeoLoop — mantiqiy boshqotirma: o‘yinchi bir xil rangdagi nuqtalarni uzluksiz chiziqlar bilan ulab, butun maydonni to‘ldiradi. Bosqichlar avtomatik yaratiladi va qiyinlik oshib boradi. O‘yinda maslahatlar va jarayonni saqlash mavjud.',
+        'NeoLoop — mantiqiy boshqotirma: o‘yinchi bir xil rangdagi nuqtalarni uzluksiz chiziqlar bilan ulab, butun maydonni to‘ldiradi.',
     'coming': 'Keyingi yangilanishlarda paydo bo‘ladi.',
     'levelSelect': 'Bosqichni tanlang',
+    'about': 'Loyiha haqida',
+    'timerHint': 'Davom etish uchun bosing',
   },
   'en': {
     'tagline': 'Connect colors. Fill the board.',
     'play': 'PLAY',
     'settings': 'Settings',
     'levels': 'Levels',
-    'about': 'About',
     'leaderboard': 'Leaderboard',
     'duel': '1 vs 1 Duel',
     'level': 'LEVEL',
@@ -131,16 +133,17 @@ const Map<String, Map<String, String>> strings = {
     'developer': 'Developer',
     'country': 'Country of development',
     'description':
-        'NeoLoop is a logic puzzle where players connect matching colored dots with continuous paths and fill the entire board. Levels are generated automatically and become more challenging over time. The game includes hints and local progress saving, with competitive modes planned.',
+        'NeoLoop is a logic puzzle where players connect matching colored dots with continuous paths and fill the entire board.',
     'coming': 'Coming in a future update.',
     'levelSelect': 'Choose a level',
+    'about': 'About',
+    'timerHint': 'Tap to continue',
   },
   'uk': {
     'tagline': 'З’єднуй кольори. Заповнюй поле.',
     'play': 'ГРАТИ',
     'settings': 'Налаштування',
     'levels': 'Рівні',
-    'about': 'Про проєкт',
     'leaderboard': 'Таблиця лідерів',
     'duel': 'Дуель 1 на 1',
     'level': 'РІВЕНЬ',
@@ -163,16 +166,17 @@ const Map<String, Map<String, String>> strings = {
     'developer': 'Розробник',
     'country': 'Країна розробки',
     'description':
-        'NeoLoop — логічна головоломка, у якій гравець з’єднує пари кольорових точок безперервними лініями та заповнює все поле. Рівні генеруються автоматично, а складність поступово зростає. Є підказки та збереження прогресу.',
+        'NeoLoop — логічна головоломка, у якій гравець з’єднує пари кольорових точок безперервними лініями та заповнює все поле.',
     'coming': 'З’явиться в майбутніх оновленнях.',
     'levelSelect': 'Оберіть рівень',
+    'about': 'Про проєкт',
+    'timerHint': 'Натисни, щоб продовжити',
   },
   'kk': {
     'tagline': 'Түстерді қос. Өрісті толтыр.',
     'play': 'ОЙНАУ',
     'settings': 'Баптаулар',
     'levels': 'Деңгейлер',
-    'about': 'Жоба туралы',
     'leaderboard': 'Көшбасшылар кестесі',
     'duel': '1-ге 1 жекпе-жек',
     'level': 'ДЕҢГЕЙ',
@@ -195,9 +199,11 @@ const Map<String, Map<String, String>> strings = {
     'developer': 'Әзірлеуші',
     'country': 'Әзірленген ел',
     'description':
-        'NeoLoop — ойыншы бір түсті нүктелерді үздіксіз сызықтармен қосып, бүкіл өрісті толтыратын логикалық басқатырғыш. Деңгейлер автоматты түрде жасалады, ал қиындық біртіндеп артады. Кеңестер мен прогресті сақтау мүмкіндігі бар.',
+        'NeoLoop — ойыншы бір түсті нүктелерді үздіксіз сызықтармен қосып, бүкіл өрісті толтыратын логикалық басқатырғыш.',
     'coming': 'Келесі жаңартуларда қосылады.',
     'levelSelect': 'Деңгейді таңдаңыз',
+    'about': 'Жоба туралы',
+    'timerHint': 'Жалғастыру үшін басыңыз',
   },
 };
 
@@ -212,21 +218,21 @@ class LevelData {
 }
 
 class LevelGenerator {
-  /// Размер поля: 1 уровень = 8×8, каждый следующий +1, максимум 30×30
-  static int sizeFor(int level) => (7 + level).clamp(8, 30);
+  /// 1 уровень = 5×5, каждый следующий +1, максимум 30×30
+  static int sizeFor(int level) => (4 + level).clamp(5, 30);
 
   static double _t(int level) =>
       ((level.clamp(1, totalLevels) - 1) / (totalLevels - 1)).toDouble();
 
   static int colorCount(int level) {
     final size = sizeFor(level);
-    final maxColors = (size * size / 4).floor(); // чтобы всегда хватало клеток
-    final raw = (4 + 10 * _t(level)).round();
-    return raw.clamp(4, maxColors);
+    final maxColors = (size * size / 4).floor();
+    final raw = (3 + 9 * _t(level)).round();
+    return raw.clamp(3, maxColors);
   }
 
   static int shuffleIterations(int level) =>
-      (80 + 25000 * _t(level)).round();
+      (60 + 22000 * _t(level)).round();
 
   static LevelData generate(int level) {
     final size = sizeFor(level);
@@ -275,7 +281,7 @@ class LevelGenerator {
     }
 
     final k = colorCount(level);
-    final minSeg = size <= 10 ? 3 : 4;
+    final minSeg = size <= 8 ? 3 : 4;
     final weights =
         List<double>.generate(k, (_) => 0.4 + rnd.nextDouble() * 1.6);
     final sum = weights.fold<double>(0, (a, b) => a + b);
@@ -306,10 +312,16 @@ List<Color> buildPalette(int n) => List.generate(
       (i) => HSVColor.fromAHSV(
         1,
         (i * 137.508) % 360,
-        i.isEven ? 0.78 : 0.55,
-        i % 3 == 0 ? 1.0 : 0.88,
+        0.55,
+        0.92,
       ).toColor(),
     );
+
+/// Цвет «стекла» зависит от уровня
+Color glassColorForLevel(int level) {
+  final hue = (level * 27.0) % 360;
+  return HSVColor.fromAHSV(1, hue, 0.25, 0.35).toColor();
+}
 class NeoLoopApp extends StatelessWidget {
   const NeoLoopApp({super.key});
 
@@ -321,7 +333,7 @@ class NeoLoopApp extends StatelessWidget {
           brightness: Brightness.dark,
           scaffoldBackgroundColor: bg,
           colorScheme: ColorScheme.fromSeed(
-            seedColor: cyan,
+            seedColor: accent,
             brightness: Brightness.dark,
           ),
           useMaterial3: true,
@@ -355,7 +367,7 @@ class _BootPageState extends State<BootPage> {
   Widget build(BuildContext context) {
     if (!_ready) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: cyan)),
+        body: Center(child: CircularProgressIndicator(color: accent)),
       );
     }
     return const HomePage();
@@ -395,35 +407,33 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               Row(
                 children: [
-                  // Красивый логотип
                   Container(
-                    width: 58,
-                    height: 58,
+                    width: 56,
+                    height: 56,
                     decoration: BoxDecoration(
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [
-                          Color(0xFF38D8FF),
-                          Color(0xFF8B5CFF),
-                          Color(0xFFFF6B9D),
+                          accent.withValues(alpha: 0.9),
+                          const Color(0xFF9B8CFF).withValues(alpha: 0.85),
                         ],
                       ),
-                      borderRadius: BorderRadius.circular(18),
+                      borderRadius: BorderRadius.circular(16),
                       boxShadow: [
                         BoxShadow(
-                          color: cyan.withValues(alpha: 0.45),
-                          blurRadius: 12,
+                          color: accent.withValues(alpha: 0.25),
+                          blurRadius: 14,
                           offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: const Icon(
                       Icons.hub_rounded,
-                      size: 32,
+                      size: 30,
                       color: Colors.white,
                     ),
                   ),
@@ -435,15 +445,15 @@ class _HomePageState extends State<HomePage> {
                         const Text(
                           'NeoLoop',
                           style: TextStyle(
-                            fontSize: 32,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: -0.5,
+                            fontSize: 30,
+                            fontWeight: FontWeight.w800,
+                            letterSpacing: -0.4,
                           ),
                         ),
                         Text(
                           tr('tagline'),
-                          style: const TextStyle(
-                            color: Colors.white70,
+                          style: TextStyle(
+                            color: Colors.white.withValues(alpha: 0.65),
                             fontSize: 12,
                           ),
                         ),
@@ -460,27 +470,32 @@ class _HomePageState extends State<HomePage> {
                       );
                       setState(() {});
                     },
-                    icon: const Icon(Icons.settings),
+                    icon: const Icon(Icons.settings_outlined),
                   ),
                 ],
               ),
               const Spacer(),
               Container(
-                padding: const EdgeInsets.all(22),
+                padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: panel,
-                  borderRadius: BorderRadius.circular(28),
-                  border: Border.all(color: cyan.withValues(alpha: 0.35)),
+                  borderRadius: BorderRadius.circular(26),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.06),
+                  ),
                 ),
                 child: Column(
                   children: [
-                    const Icon(Icons.blur_circular, size: 72, color: cyan),
+                    Icon(Icons.grid_4x4_rounded,
+                        size: 64, color: accent.withValues(alpha: 0.9)),
+                    const SizedBox(height: 8),
                     Text(
                       '${tr('level')} ${AppPrefs.level}',
-                      style: const TextStyle(
-                        color: cyan,
-                        letterSpacing: 2,
-                        fontWeight: FontWeight.bold,
+                      style: TextStyle(
+                        color: accent,
+                        letterSpacing: 1.5,
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -488,38 +503,49 @@ class _HomePageState extends State<HomePage> {
                       tr('connect'),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        fontSize: 21,
-                        fontWeight: FontWeight.bold,
+                        fontSize: 19,
+                        fontWeight: FontWeight.w600,
+                        height: 1.3,
                       ),
                     ),
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
                     Text(
-                      '$size×$size • $colors',
-                      style: const TextStyle(color: Colors.white70),
+                      '$size×$size  •  $colors',
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.55),
+                      ),
                     ),
                     Text(
                       '${tr('done')}: ${AppPrefs.completed}/$totalLevels',
-                      style: const TextStyle(color: Colors.white70),
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.55),
+                      ),
                     ),
-                    const SizedBox(height: 18),
+                    const SizedBox(height: 20),
                     FilledButton(
                       onPressed: _play,
                       style: FilledButton.styleFrom(
-                        backgroundColor: cyan,
+                        backgroundColor: accent,
                         foregroundColor: bg,
-                        minimumSize: const Size.fromHeight(52),
+                        minimumSize: const Size.fromHeight(50),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(14),
+                        ),
                       ),
                       child: Text(
                         tr('play'),
-                        style: const TextStyle(fontWeight: FontWeight.w900),
+                        style: const TextStyle(
+                          fontWeight: FontWeight.w700,
+                          fontSize: 16,
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _MenuButton(
-                icon: Icons.grid_view,
+                icon: Icons.grid_view_rounded,
                 label: tr('levels'),
                 onTap: () async {
                   final selected = await Navigator.push<int>(
@@ -541,7 +567,7 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(
                     builder: (_) => const InfoPage(
                       titleKey: 'leaderboard',
-                      icon: Icons.emoji_events,
+                      icon: Icons.emoji_events_outlined,
                       bodyKey: 'coming',
                     ),
                   ),
@@ -555,25 +581,20 @@ class _HomePageState extends State<HomePage> {
                   MaterialPageRoute(
                     builder: (_) => const InfoPage(
                       titleKey: 'duel',
-                      icon: Icons.bolt,
+                      icon: Icons.bolt_outlined,
                       bodyKey: 'coming',
                     ),
                   ),
-                ),
-              ),
-              _MenuButton(
-                icon: Icons.info_outline,
-                label: tr('about'),
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const AboutPage()),
                 ),
               ),
               const Spacer(),
               Text(
                 tr('offline'),
                 textAlign: TextAlign.center,
-                style: const TextStyle(color: Colors.white38, fontSize: 11),
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  fontSize: 11,
+                ),
               ),
             ],
           ),
@@ -600,13 +621,16 @@ class _MenuButton extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8),
       child: OutlinedButton.icon(
         onPressed: onTap,
-        icon: Icon(icon),
+        icon: Icon(icon, size: 20),
         label: Text(label),
         style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white,
-          side: BorderSide(color: cyan.withValues(alpha: 0.25)),
+          foregroundColor: Colors.white.withValues(alpha: 0.9),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
           minimumSize: const Size.fromHeight(46),
           alignment: Alignment.centerLeft,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
         ),
       ),
     );
@@ -634,8 +658,13 @@ class LevelsPage extends StatelessWidget {
           return FilledButton(
             onPressed: unlocked ? () => Navigator.pop(context, n) : null,
             style: FilledButton.styleFrom(
-              backgroundColor: n == AppPrefs.level ? cyan : panel,
-              foregroundColor: n == AppPrefs.level ? bg : Colors.white,
+              backgroundColor:
+                  n == AppPrefs.level ? accent : panel,
+              foregroundColor:
+                  n == AppPrefs.level ? bg : Colors.white70,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
             ),
             child: Text('$n'),
           );
@@ -664,6 +693,7 @@ class _SettingsPageState extends State<SettingsPage> {
             leading: const Icon(Icons.language),
             trailing: DropdownButton<String>(
               value: AppPrefs.language,
+              underline: const SizedBox(),
               items: const [
                 DropdownMenuItem(value: 'ru', child: Text('🇷🇺 Русский')),
                 DropdownMenuItem(value: 'uz', child: Text('🇺🇿 O‘zbekcha')),
@@ -683,6 +713,7 @@ class _SettingsPageState extends State<SettingsPage> {
           SwitchListTile(
             title: Text(tr('sound')),
             value: AppPrefs.sound,
+            activeColor: accent,
             onChanged: (v) async {
               setState(() => AppPrefs.sound = v);
               await AppPrefs.save();
@@ -691,82 +722,50 @@ class _SettingsPageState extends State<SettingsPage> {
           SwitchListTile(
             title: Text(tr('effects')),
             value: AppPrefs.effects,
+            activeColor: accent,
             onChanged: (v) async {
               setState(() => AppPrefs.effects = v);
               await AppPrefs.save();
             },
           ),
-        ],
-      ),
-    );
-  }
-}
-
-class AboutPage extends StatelessWidget {
-  const AboutPage({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(tr('about'))),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Container(
-            width: 90,
-            height: 90,
-            margin: const EdgeInsets.only(bottom: 16),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  Color(0xFF38D8FF),
-                  Color(0xFF8B5CFF),
-                  Color(0xFFFF6B9D),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(24),
-              boxShadow: [
-                BoxShadow(
-                  color: cyan.withValues(alpha: 0.4),
-                  blurRadius: 16,
-                  offset: const Offset(0, 6),
-                ),
-              ],
-            ),
-            child: const Icon(Icons.hub_rounded, size: 48, color: Colors.white),
-          ),
-          const Text(
-            'NeoLoop',
-            textAlign: TextAlign.center,
-            style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900),
-          ),
           const SizedBox(height: 20),
+          const Divider(),
+          const SizedBox(height: 12),
+          Text(
+            tr('about'),
+            style: TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.w600,
+              color: Colors.white.withValues(alpha: 0.85),
+            ),
+          ),
+          const SizedBox(height: 10),
           Text(
             tr('description'),
-            style: const TextStyle(fontSize: 16, height: 1.5),
+            style: TextStyle(
+              fontSize: 14,
+              height: 1.5,
+              color: Colors.white.withValues(alpha: 0.65),
+            ),
           ),
-          const SizedBox(height: 22),
+          const SizedBox(height: 20),
           ListTile(
-            leading: const Icon(Icons.person_outline),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.person_outline, size: 22),
             title: Text(tr('developer')),
             subtitle: const Text('Saidov Islom'),
           ),
           ListTile(
-            leading: const Icon(Icons.flag_outlined),
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.flag_outlined, size: 22),
             title: Text(tr('country')),
-            subtitle: const Text('Uzbekistan / O‘zbekiston / Узбекистан'),
+            subtitle: const Text('Uzbekistan'),
           ),
           const ListTile(
-            leading: Icon(Icons.phone_android),
-            title: Text('Платформа / Platform'),
-            subtitle: Text('Android'),
-          ),
-          const ListTile(
-            leading: Icon(Icons.info_outline),
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.info_outline, size: 22),
             title: Text('Version'),
-            subtitle: Text('1.1.0'),
+            subtitle: Text('1.2.0'),
           ),
         ],
       ),
@@ -796,12 +795,15 @@ class InfoPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 72, color: cyan),
+              Icon(icon, size: 64, color: accent.withValues(alpha: 0.9)),
               const SizedBox(height: 18),
               Text(
                 tr(bodyKey),
                 textAlign: TextAlign.center,
-                style: const TextStyle(fontSize: 17),
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white.withValues(alpha: 0.75),
+                ),
               ),
             ],
           ),
@@ -826,6 +828,7 @@ class _GamePageState extends State<GamePage> {
   late final List<Color> colors = buildPalette(data.colors);
   late final int n = data.size;
   late final List<int> owner = List<int>.filled(n * n, -1);
+  late final Color glassColor = glassColorForLevel(widget.number);
 
   final Map<int, List<int>> paths = {};
   int? active;
@@ -1017,8 +1020,7 @@ class _GamePageState extends State<GamePage> {
       _rebuild();
     });
   }
-
-  void _checkWin() {
+    void _checkWin() {
     if (won) return;
     if (!List.generate(data.colors, (i) => i).every(_connected) ||
         owner.contains(-1)) {
@@ -1028,21 +1030,16 @@ class _GamePageState extends State<GamePage> {
     showDialog<void>(
       context: context,
       barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: panel,
-        title: Text(tr('won')),
-        content: Text(
-          '${tr('moves')}: $moves\n${tr('hintsUsed')}: ${maxHints - hintsLeft}',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.pop(context, widget.number);
-            },
-            child: Text(tr('next')),
-          ),
-        ],
+      builder: (ctx) => _WinDialog(
+        moves: moves,
+        hintsUsed: maxHints - hintsLeft,
+        onContinue: () {
+          Navigator.pop(ctx);
+          Navigator.pop(context, widget.number);
+        },
+        onTimeout: () {
+          Navigator.pop(ctx); // просто закрываем, уровень не засчитываем как пройденный дальше
+        },
       ),
     );
   }
@@ -1053,7 +1050,8 @@ class _GamePageState extends State<GamePage> {
     if (x < 0 || x >= n || y < 0 || y >= n) return null;
     return y * n + x;
   }
-    @override
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
@@ -1080,6 +1078,9 @@ class _GamePageState extends State<GamePage> {
               '${tr('connected')}: $connectedCount/${data.colors} • '
               '${tr('filled')}: $filledPercent%',
               textAlign: TextAlign.center,
+              style: TextStyle(
+                color: Colors.white.withValues(alpha: 0.8),
+              ),
             ),
           ),
           Expanded(
@@ -1087,7 +1088,7 @@ class _GamePageState extends State<GamePage> {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: Padding(
-                  padding: const EdgeInsets.all(8),
+                  padding: const EdgeInsets.all(10),
                   child: LayoutBuilder(
                     builder: (context, box) {
                       final cell = box.maxWidth / n;
@@ -1111,6 +1112,7 @@ class _GamePageState extends State<GamePage> {
                             active: active,
                             owner: owner,
                             colors: colors,
+                            glassColor: glassColor,
                           ),
                           child: const SizedBox.expand(),
                         ),
@@ -1122,22 +1124,37 @@ class _GamePageState extends State<GamePage> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 2, 16, 16),
+            padding: const EdgeInsets.fromLTRB(16, 4, 16, 16),
             child: Row(
               children: [
                 Expanded(
                   child: OutlinedButton.icon(
                     onPressed: reset,
-                    icon: const Icon(Icons.refresh),
+                    icon: const Icon(Icons.refresh, size: 18),
                     label: Text(tr('reset')),
+                    style: OutlinedButton.styleFrom(
+                      foregroundColor: Colors.white70,
+                      side: BorderSide(
+                          color: Colors.white.withValues(alpha: 0.15)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
                   child: FilledButton.icon(
                     onPressed: hint,
-                    icon: const Icon(Icons.lightbulb_outline),
+                    icon: const Icon(Icons.lightbulb_outline, size: 18),
                     label: Text('${tr('hint')} ($hintsLeft)'),
+                    style: FilledButton.styleFrom(
+                      backgroundColor: accent.withValues(alpha: 0.9),
+                      foregroundColor: bg,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -1149,6 +1166,109 @@ class _GamePageState extends State<GamePage> {
   }
 }
 
+/// Диалог победы с таймером 3 секунды
+class _WinDialog extends StatefulWidget {
+  final int moves;
+  final int hintsUsed;
+  final VoidCallback onContinue;
+  final VoidCallback onTimeout;
+
+  const _WinDialog({
+    required this.moves,
+    required this.hintsUsed,
+    required this.onContinue,
+    required this.onTimeout,
+  });
+
+  @override
+  State<_WinDialog> createState() => _WinDialogState();
+}
+
+class _WinDialogState extends State<_WinDialog> {
+  int _secondsLeft = 3;
+  Timer? _timer;
+  bool _pressed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _timer = Timer.periodic(const Duration(seconds: 1), (t) {
+      if (!mounted) return;
+      setState(() => _secondsLeft--);
+      if (_secondsLeft <= 0) {
+        t.cancel();
+        if (!_pressed) widget.onTimeout();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: panel,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      title: Text(
+        tr('won'),
+        textAlign: TextAlign.center,
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${tr('moves')}: ${widget.moves}\n'
+            '${tr('hintsUsed')}: ${widget.hintsUsed}',
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 18),
+          Text(
+            '$_secondsLeft',
+            style: TextStyle(
+              fontSize: 42,
+              fontWeight: FontWeight.w300,
+              color: accent.withValues(alpha: 0.9),
+            ),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            tr('timerHint'),
+            style: TextStyle(
+              fontSize: 13,
+              color: Colors.white.withValues(alpha: 0.5),
+            ),
+          ),
+        ],
+      ),
+      actionsAlignment: MainAxisAlignment.center,
+      actions: [
+        FilledButton(
+          onPressed: _secondsLeft > 0
+              ? () {
+                  _pressed = true;
+                  _timer?.cancel();
+                  widget.onContinue();
+                }
+              : null,
+          style: FilledButton.styleFrom(
+            backgroundColor: accent,
+            foregroundColor: bg,
+            minimumSize: const Size(140, 44),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+          ),
+          child: Text(tr('next')),
+        ),
+      ],
+    );
+  }
+}
 class GridPainter extends CustomPainter {
   final int n;
   final Map<int, int> endpoints;
@@ -1157,6 +1277,7 @@ class GridPainter extends CustomPainter {
   final int? active;
   final List<int> owner;
   final List<Color> colors;
+  final Color glassColor;
 
   GridPainter({
     required this.n,
@@ -1166,40 +1287,66 @@ class GridPainter extends CustomPainter {
     required this.active,
     required this.owner,
     required this.colors,
+    required this.glassColor,
   });
 
   @override
   void paint(Canvas canvas, Size size) {
     final cell = size.width / n;
-    final grid = Paint()
-      ..color = const Color(0xFF1C3555)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.7;
 
+    // Фон «стекла»
+    final bgPaint = Paint()..color = glassColor.withValues(alpha: 0.22);
+    canvas.drawRRect(
+      RRect.fromRectAndRadius(
+        Rect.fromLTWH(0, 0, size.width, size.height),
+        const Radius.circular(12),
+      ),
+      bgPaint,
+    );
+
+    // Клетчатый узор (прозрачное стекло)
+    final checker = Paint()..style = PaintingStyle.fill;
     for (int y = 0; y < n; y++) {
       for (int x = 0; x < n; x++) {
+        if ((x + y).isEven) {
+          checker.color = Colors.white.withValues(alpha: 0.04);
+        } else {
+          checker.color = Colors.black.withValues(alpha: 0.06);
+        }
         canvas.drawRect(
           Rect.fromLTWH(x * cell, y * cell, cell, cell),
-          grid,
+          checker,
         );
       }
+    }
+
+    // Тонкие линии сетки
+    final grid = Paint()
+      ..color = Colors.white.withValues(alpha: 0.12)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 0.8;
+
+    for (int i = 0; i <= n; i++) {
+      final pos = i * cell;
+      canvas.drawLine(Offset(pos, 0), Offset(pos, size.height), grid);
+      canvas.drawLine(Offset(0, pos), Offset(size.width, pos), grid);
     }
 
     void drawPath(List<int> p, Color color) {
       if (p.isEmpty) return;
       final paint = Paint()
-        ..color = color
+        ..color = color.withValues(alpha: 0.9)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = cell * 0.58
+        ..strokeWidth = cell * 0.52
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round;
+
       final glow = Paint()
-        ..color = color.withValues(alpha: 0.18)
+        ..color = color.withValues(alpha: 0.15)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = cell * 0.9
+        ..strokeWidth = cell * 0.8
         ..strokeCap = StrokeCap.round
-        ..strokeJoin = StrokeJoin.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
 
       final path = Path();
       Offset center(int c) =>
@@ -1221,17 +1368,23 @@ class GridPainter extends CustomPainter {
       drawPath(draft, colors[active!]);
     }
 
+    // Цветные точки
     for (final e in endpoints.entries) {
       final c = e.key;
       final color = colors[e.value];
       final center = Offset((c % n + 0.5) * cell, (c ~/ n + 0.5) * cell);
+
       canvas.drawCircle(
         center,
-        cell * 0.38,
-        Paint()..color = color.withValues(alpha: 0.22),
+        cell * 0.36,
+        Paint()..color = color.withValues(alpha: 0.18),
       );
-      canvas.drawCircle(center, cell * 0.29, Paint()..color = color);
-      canvas.drawCircle(center, cell * 0.12, Paint()..color = bg);
+      canvas.drawCircle(center, cell * 0.27, Paint()..color = color);
+      canvas.drawCircle(
+        center,
+        cell * 0.11,
+        Paint()..color = bg.withValues(alpha: 0.7),
+      );
     }
   }
 
