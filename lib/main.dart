@@ -1,22 +1,28 @@
-//ignore_for_file: prefer_const_constructors, const_with_non_const
+// ignore_for_file: prefer_const_constructors, const_with_non_const
+
 import 'dart:async';
 import 'dart:math';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+// Раскомментируй, когда добавишь пакет и музыку:
+// import 'package:audioplayers/audioplayers.dart';
 
 void main() => runApp(const NeoLoopApp());
 
-const Color bg = Color(0xFF0B1426);
-const Color panel = Color(0xFF152238);
-const Color accent = Color(0xFF7EC8E3);
-const int totalLevels = 30;
+const Color bg = Color(0xFFF7F4EF);           // мягкий молочный фон
+const Color panel = Color(0xFFFFFFFF);        // белые карточки
+const Color accent = Color(0xFF7BA3B8);       // спокойный голубовато-серый
+const Color textPrimary = Color(0xFF2C3E50);
+const Color textSecondary = Color(0xFF6B7C8A);
+const int totalLevels = 60;
 
 class AppPrefs {
   static const languages = ['ru', 'uz', 'en', 'uk', 'kk'];
   static String language = 'ru';
   static bool sound = true;
   static bool effects = true;
+  static bool music = true;
   static int level = 1;
   static int completed = 0;
 
@@ -26,6 +32,7 @@ class AppPrefs {
     if (!languages.contains(language)) language = 'ru';
     sound = p.getBool('sound') ?? true;
     effects = p.getBool('effects') ?? true;
+    music = p.getBool('music') ?? true;
     level = (p.getInt('level') ?? 1).clamp(1, totalLevels).toInt();
     completed = (p.getInt('completed') ?? 0).clamp(0, totalLevels).toInt();
   }
@@ -35,21 +42,74 @@ class AppPrefs {
     await p.setString('language', language);
     await p.setBool('sound', sound);
     await p.setBool('effects', effects);
+    await p.setBool('music', music);
     await p.setInt('level', level);
     await p.setInt('completed', completed);
   }
 }
 
+/// Простой сервис рекламы.
+/// Здесь можно легко подключить AdMob, AppLovin, Yandex и т.д.
+class AdService {
+  static bool adsEnabled = true;
+
+  /// Показать межстраничную рекламу (после уровня и т.п.)
+  static Future<void> showInterstitial() async {
+    if (!adsEnabled) return;
+    // TODO: здесь вставь код своей рекламной сети
+    // Пример для AdMob:
+    // await InterstitialAd.load(...);
+  }
+
+  /// Показать баннер (если нужно)
+  static Widget? banner() {
+    if (!adsEnabled) return null;
+    // TODO: верни виджет баннера своей сети
+    return null;
+  }
+}
+
+/// Фоновая музыка (спокойная).
+/// Чтобы включить настоящую музыку:
+/// 1. Добавь в pubspec.yaml: audioplayers: ^6.1.0
+/// 2. Положи файл assets/music/calm.mp3
+/// 3. Раскомментируй код ниже
+class MusicService {
+  // static final AudioPlayer _player = AudioPlayer();
+  static bool _playing = false;
+
+  static Future<void> start() async {
+    if (!AppPrefs.music || _playing) return;
+    // await _player.setReleaseMode(ReleaseMode.loop);
+    // await _player.play(AssetSource('music/calm.mp3'));
+    _playing = true;
+  }
+
+  static Future<void> stop() async {
+    // await _player.stop();
+    _playing = false;
+  }
+
+  static Future<void> setEnabled(bool value) async {
+    AppPrefs.music = value;
+    await AppPrefs.save();
+    if (value) {
+      await start();
+    } else {
+      await stop();
+    }
+  }
+}
 const Map<String, Map<String, String>> strings = {
   'ru': {
-    'tagline': 'Соединяй цвета. Заполняй поле.',
+    'tagline': 'Спокойная логическая головоломка',
     'play': 'ИГРАТЬ',
     'settings': 'Настройки',
     'levels': 'Уровни',
     'leaderboard': 'Таблица лидеров',
     'duel': 'Дуэль 1 на 1',
     'level': 'УРОВЕНЬ',
-    'connect': 'Соедини пары и заполни все клетки',
+    'connect': 'Соедини пары и заполни всё поле',
     'connected': 'Соединено',
     'filled': 'Заполнено',
     'hint': 'Подсказка',
@@ -57,65 +117,67 @@ const Map<String, Map<String, String>> strings = {
     'next': 'ДАЛЕЕ',
     'won': 'Уровень пройден!',
     'moves': 'Ходов',
-    'hintsUsed': 'Подсказок использовано',
+    'hintsUsed': 'Подсказок',
     'language': 'Язык',
     'sound': 'Звук',
     'effects': 'Эффекты',
+    'music': 'Музыка',
     'done': 'Пройдено уровней',
     'offline': 'Офлайн • Прогресс сохраняется',
     'noHints': 'Подсказки закончились',
     'hintShown': 'Показан правильный путь',
     'developer': 'Разработчик',
-    'country': 'Страна разработки',
+    'country': 'Страна',
     'description':
-        'NeoLoop — логическая головоломка, в которой игрок соединяет пары цветных точек непрерывными линиями и заполняет всё поле. Уровни создаются автоматически, а сложность растёт по мере прохождения.',
-    'coming': 'Скоро появится в следующих обновлениях.',
+        'NeoLoop — спокойная логическая головоломка. Соединяй пары цветных точек непрерывными линиями и заполняй всё поле. Уровни генерируются автоматически, сложность растёт постепенно.',
+    'coming': 'Скоро в следующих обновлениях.',
     'levelSelect': 'Выбери уровень',
-    'about': 'О проекте',
-    'timerHint': 'Нажми, чтобы перейти дальше',
+    'about': 'О приложении',
+    'timerHint': 'Переход через',
   },
   'uz': {
-    'tagline': 'Ranglarni ulang. Maydonni to‘ldiring.',
+    'tagline': 'Tinch mantiqiy boshqotirma',
     'play': 'O‘YNASH',
     'settings': 'Sozlamalar',
     'levels': 'Bosqichlar',
-    'leaderboard': 'Yetakchilar jadvali',
+    'leaderboard': 'Yetakchilar',
     'duel': '1 ga 1 duel',
     'level': 'BOSQICH',
-    'connect': 'Juft ranglarni ulang va barcha kataklarni to‘ldiring',
+    'connect': 'Juftlarni ulang va maydonni to‘ldiring',
     'connected': 'Ulangan',
     'filled': 'To‘ldirilgan',
     'hint': 'Maslahat',
-    'reset': 'Qayta boshlash',
+    'reset': 'Qayta',
     'next': 'KEYINGI',
     'won': 'Bosqich tugadi!',
     'moves': 'Yurishlar',
-    'hintsUsed': 'Ishlatilgan maslahatlar',
+    'hintsUsed': 'Maslahatlar',
     'language': 'Til',
     'sound': 'Ovoz',
     'effects': 'Effektlar',
-    'done': 'Tugatilgan bosqichlar',
-    'offline': 'Oflayn • Jarayon saqlanadi',
+    'music': 'Musiqa',
+    'done': 'Tugatilgan',
+    'offline': 'Oflayn • Saqlanadi',
     'noHints': 'Maslahatlar tugadi',
     'hintShown': 'To‘g‘ri yo‘l ko‘rsatildi',
     'developer': 'Dasturchi',
-    'country': 'Ishlab chiqilgan mamlakat',
+    'country': 'Mamlakat',
     'description':
-        'NeoLoop — mantiqiy boshqotirma: o‘yinchi bir xil rangdagi nuqtalarni uzluksiz chiziqlar bilan ulab, butun maydonni to‘ldiradi.',
-    'coming': 'Keyingi yangilanishlarda paydo bo‘ladi.',
+        'NeoLoop — tinch mantiqiy o‘yin. Rangli nuqtalarni chiziqlar bilan ulang va butun maydonni to‘ldiring.',
+    'coming': 'Tez orada.',
     'levelSelect': 'Bosqichni tanlang',
-    'about': 'Loyiha haqida',
-    'timerHint': 'Davom etish uchun bosing',
+    'about': 'Ilova haqida',
+    'timerHint': 'O‘tish',
   },
   'en': {
-    'tagline': 'Connect colors. Fill the board.',
+    'tagline': 'A calm logic puzzle',
     'play': 'PLAY',
     'settings': 'Settings',
     'levels': 'Levels',
     'leaderboard': 'Leaderboard',
     'duel': '1 vs 1 Duel',
     'level': 'LEVEL',
-    'connect': 'Connect pairs and fill every cell',
+    'connect': 'Connect pairs and fill the board',
     'connected': 'Connected',
     'filled': 'Filled',
     'hint': 'Hint',
@@ -123,32 +185,33 @@ const Map<String, Map<String, String>> strings = {
     'next': 'NEXT',
     'won': 'Level complete!',
     'moves': 'Moves',
-    'hintsUsed': 'Hints used',
+    'hintsUsed': 'Hints',
     'language': 'Language',
     'sound': 'Sound',
     'effects': 'Effects',
-    'done': 'Levels completed',
+    'music': 'Music',
+    'done': 'Completed',
     'offline': 'Offline • Progress saved',
     'noHints': 'No hints left',
-    'hintShown': 'A correct path was revealed',
+    'hintShown': 'Correct path revealed',
     'developer': 'Developer',
-    'country': 'Country of development',
+    'country': 'Country',
     'description':
-        'NeoLoop is a logic puzzle where players connect matching colored dots with continuous paths and fill the entire board.',
-    'coming': 'Coming in a future update.',
+        'NeoLoop is a calm logic puzzle. Connect matching colored dots with continuous paths and fill the entire board.',
+    'coming': 'Coming soon.',
     'levelSelect': 'Choose a level',
     'about': 'About',
-    'timerHint': 'Tap to continue',
+    'timerHint': 'Continuing in',
   },
   'uk': {
-    'tagline': 'З’єднуй кольори. Заповнюй поле.',
+    'tagline': 'Спокійна логічна головоломка',
     'play': 'ГРАТИ',
     'settings': 'Налаштування',
     'levels': 'Рівні',
     'leaderboard': 'Таблиця лідерів',
     'duel': 'Дуель 1 на 1',
     'level': 'РІВЕНЬ',
-    'connect': 'З’єднай пари та заповни всі клітинки',
+    'connect': 'З’єднай пари та заповни поле',
     'connected': 'З’єднано',
     'filled': 'Заповнено',
     'hint': 'Підказка',
@@ -156,61 +219,62 @@ const Map<String, Map<String, String>> strings = {
     'next': 'ДАЛІ',
     'won': 'Рівень пройдено!',
     'moves': 'Ходів',
-    'hintsUsed': 'Використано підказок',
+    'hintsUsed': 'Підказок',
     'language': 'Мова',
     'sound': 'Звук',
     'effects': 'Ефекти',
-    'done': 'Пройдено рівнів',
+    'music': 'Музика',
+    'done': 'Пройдено',
     'offline': 'Офлайн • Прогрес збережено',
     'noHints': 'Підказки закінчилися',
     'hintShown': 'Показано правильний шлях',
     'developer': 'Розробник',
-    'country': 'Країна розробки',
+    'country': 'Країна',
     'description':
-        'NeoLoop — логічна головоломка, у якій гравець з’єднує пари кольорових точок безперервними лініями та заповнює все поле.',
-    'coming': 'З’явиться в майбутніх оновленнях.',
+        'NeoLoop — спокійна логічна головоломка. З’єднуй пари кольорових точок і заповнюй усе поле.',
+    'coming': 'Незабаром.',
     'levelSelect': 'Оберіть рівень',
-    'about': 'Про проєкт',
-    'timerHint': 'Натисни, щоб продовжити',
+    'about': 'Про застосунок',
+    'timerHint': 'Перехід через',
   },
   'kk': {
-    'tagline': 'Түстерді қос. Өрісті толтыр.',
+    'tagline': 'Тыныш логикалық ойын',
     'play': 'ОЙНАУ',
     'settings': 'Баптаулар',
     'levels': 'Деңгейлер',
-    'leaderboard': 'Көшбасшылар кестесі',
-    'duel': '1-ге 1 жекпе-жек',
+    'leaderboard': 'Көшбасшылар',
+    'duel': '1-ге 1',
     'level': 'ДЕҢГЕЙ',
-    'connect': 'Жұптарды қосып, барлық ұяшықты толтыр',
+    'connect': 'Жұптарды қосып, өрісті толтыр',
     'connected': 'Қосылды',
     'filled': 'Толтырылды',
     'hint': 'Кеңес',
-    'reset': 'Қайта бастау',
+    'reset': 'Қайта',
     'next': 'КЕЛЕСІ',
     'won': 'Деңгей аяқталды!',
     'moves': 'Жүрістер',
-    'hintsUsed': 'Қолданылған кеңестер',
+    'hintsUsed': 'Кеңестер',
     'language': 'Тіл',
     'sound': 'Дыбыс',
     'effects': 'Әсерлер',
-    'done': 'Өтілген деңгейлер',
-    'offline': 'Офлайн • Үдеріс сақталады',
+    'music': 'Музыка',
+    'done': 'Өтілген',
+    'offline': 'Офлайн • Сақталады',
     'noHints': 'Кеңестер таусылды',
     'hintShown': 'Дұрыс жол көрсетілді',
     'developer': 'Әзірлеуші',
-    'country': 'Әзірленген ел',
+    'country': 'Ел',
     'description':
-        'NeoLoop — ойыншы бір түсті нүктелерді үздіксіз сызықтармен қосып, бүкіл өрісті толтыратын логикалық басқатырғыш.',
-    'coming': 'Келесі жаңартуларда қосылады.',
+        'NeoLoop — тыныш логикалық ойын. Түсті нүктелерді сызықтармен қосып, бүкіл өрісті толтырыңыз.',
+    'coming': 'Жақында.',
     'levelSelect': 'Деңгейді таңдаңыз',
-    'about': 'Жоба туралы',
-    'timerHint': 'Жалғастыру үшін басыңыз',
+    'about': 'Қосымша туралы',
+    'timerHint': 'Өту',
   },
 };
 
 String tr(String key) =>
     strings[AppPrefs.language]?[key] ?? strings['en']![key] ?? key;
-
 class LevelData {
   final int size, colors;
   final Map<int, int> endpoints;
@@ -219,7 +283,11 @@ class LevelData {
 }
 
 class LevelGenerator {
-  static int sizeFor(int level) => (4 + level).clamp(5, 30);
+  /// 1 уровень = 5×5, постепенно растёт, максимум 16×16
+  static int sizeFor(int level) {
+    final raw = 4 + ((level - 1) * 0.22).round();
+    return raw.clamp(5, 16);
+  }
 
   static double _t(int level) =>
       ((level.clamp(1, totalLevels) - 1) / (totalLevels - 1)).toDouble();
@@ -227,12 +295,12 @@ class LevelGenerator {
   static int colorCount(int level) {
     final size = sizeFor(level);
     final maxColors = (size * size / 4).floor();
-    final raw = (3 + 9 * _t(level)).round();
+    final raw = (3 + 8 * _t(level)).round();
     return raw.clamp(3, maxColors);
   }
 
   static int shuffleIterations(int level) =>
-      (60 + 22000 * _t(level)).round();
+      (50 + 18000 * _t(level)).round();
 
   static LevelData generate(int level) {
     final size = sizeFor(level);
@@ -312,14 +380,15 @@ List<Color> buildPalette(int n) => List.generate(
       (i) => HSVColor.fromAHSV(
         1,
         (i * 137.508) % 360,
-        0.55,
-        0.92,
+        0.42,
+        0.78,
       ).toColor(),
     );
 
 Color glassColorForLevel(int level) {
-  final hue = (level * 27.0) % 360;
-  return HSVColor.fromAHSV(1, hue, 0.25, 0.35).toColor();
+  // мягкий молочный оттенок, слегка меняется
+  final hue = (level * 11.0) % 40 + 30;
+  return HSVColor.fromAHSV(1, hue, 0.08, 0.96).toColor();
 }
 class NeoLoopApp extends StatelessWidget {
   const NeoLoopApp({super.key});
@@ -329,13 +398,18 @@ class NeoLoopApp extends StatelessWidget {
         title: 'NeoLoop',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
-          brightness: Brightness.dark,
+          brightness: Brightness.light,
           scaffoldBackgroundColor: bg,
           colorScheme: ColorScheme.fromSeed(
             seedColor: accent,
-            brightness: Brightness.dark,
+            brightness: Brightness.light,
           ),
           useMaterial3: true,
+          appBarTheme: const AppBarTheme(
+            backgroundColor: bg,
+            foregroundColor: textPrimary,
+            elevation: 0,
+          ),
         ),
         home: const BootPage(),
       );
@@ -359,6 +433,7 @@ class _BootPageState extends State<BootPage> {
 
   Future<void> _init() async {
     await AppPrefs.load();
+    await MusicService.start();
     if (mounted) setState(() => _ready = true);
   }
 
@@ -406,34 +481,20 @@ class _HomePageState extends State<HomePage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Container(
-                    width: 56,
-                    height: 56,
+                    width: 52,
+                    height: 52,
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [
-                          accent.withValues(alpha: 0.9),
-                          const Color(0xFF9B8CFF).withValues(alpha: 0.85),
-                        ],
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      boxShadow: [
-                        BoxShadow(
-                          color: accent.withValues(alpha: 0.25),
-                          blurRadius: 14,
-                          offset: const Offset(0, 4),
-                        ),
-                      ],
+                      color: accent.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(14),
                     ),
                     child: const Icon(
                       Icons.hub_rounded,
-                      size: 30,
-                      color: Colors.white,
+                      size: 28,
+                      color: accent,
                     ),
                   ),
                   const SizedBox(width: 14),
@@ -444,16 +505,16 @@ class _HomePageState extends State<HomePage> {
                         const Text(
                           'NeoLoop',
                           style: TextStyle(
-                            fontSize: 30,
-                            fontWeight: FontWeight.w800,
-                            letterSpacing: -0.4,
+                            fontSize: 28,
+                            fontWeight: FontWeight.w700,
+                            color: textPrimary,
                           ),
                         ),
                         Text(
                           tr('tagline'),
-                          style: TextStyle(
-                            color: Colors.white.withValues(alpha: 0.65),
-                            fontSize: 12,
+                          style: const TextStyle(
+                            color: textSecondary,
+                            fontSize: 13,
                           ),
                         ),
                       ],
@@ -469,7 +530,7 @@ class _HomePageState extends State<HomePage> {
                       );
                       setState(() {});
                     },
-                    icon: const Icon(Icons.settings_outlined),
+                    icon: const Icon(Icons.settings_outlined, color: textSecondary),
                   ),
                 ],
               ),
@@ -478,54 +539,55 @@ class _HomePageState extends State<HomePage> {
                 padding: const EdgeInsets.all(24),
                 decoration: BoxDecoration(
                   color: panel,
-                  borderRadius: BorderRadius.circular(26),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.06),
-                  ),
+                  borderRadius: BorderRadius.circular(24),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.04),
+                      blurRadius: 20,
+                      offset: const Offset(0, 6),
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
                     Icon(Icons.grid_4x4_rounded,
-                        size: 64, color: accent.withValues(alpha: 0.9)),
-                    const SizedBox(height: 8),
+                        size: 56, color: accent.withValues(alpha: 0.85)),
+                    const SizedBox(height: 10),
                     Text(
                       '${tr('level')} ${AppPrefs.level}',
-                      style: TextStyle(
+                      style: const TextStyle(
                         color: accent,
-                        letterSpacing: 1.5,
+                        letterSpacing: 1.2,
                         fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                        fontSize: 13,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 10),
                     Text(
                       tr('connect'),
                       textAlign: TextAlign.center,
                       style: const TextStyle(
-                        fontSize: 19,
+                        fontSize: 18,
                         fontWeight: FontWeight.w600,
+                        color: textPrimary,
                         height: 1.3,
                       ),
                     ),
                     const SizedBox(height: 10),
                     Text(
                       '$size×$size  •  $colors',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.55),
-                      ),
+                      style: const TextStyle(color: textSecondary),
                     ),
                     Text(
                       '${tr('done')}: ${AppPrefs.completed}/$totalLevels',
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.55),
-                      ),
+                      style: const TextStyle(color: textSecondary),
                     ),
                     const SizedBox(height: 20),
                     FilledButton(
                       onPressed: _play,
                       style: FilledButton.styleFrom(
                         backgroundColor: accent,
-                        foregroundColor: bg,
+                        foregroundColor: Colors.white,
                         minimumSize: const Size.fromHeight(50),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(14),
@@ -591,7 +653,7 @@ class _HomePageState extends State<HomePage> {
                 tr('offline'),
                 textAlign: TextAlign.center,
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.3),
+                  color: textSecondary.withValues(alpha: 0.7),
                   fontSize: 11,
                 ),
               ),
@@ -602,7 +664,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 }
-
 class _MenuButton extends StatelessWidget {
   final IconData icon;
   final String label;
@@ -620,13 +681,13 @@ class _MenuButton extends StatelessWidget {
       padding: const EdgeInsets.only(top: 8),
       child: OutlinedButton.icon(
         onPressed: onTap,
-        icon: Icon(icon, size: 20),
-        label: Text(label),
+        icon: Icon(icon, size: 20, color: textSecondary),
+        label: Text(label, style: const TextStyle(color: textPrimary)),
         style: OutlinedButton.styleFrom(
-          foregroundColor: Colors.white.withValues(alpha: 0.9),
-          side: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+          side: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
           minimumSize: const Size.fromHeight(46),
           alignment: Alignment.centerLeft,
+          backgroundColor: panel,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12),
           ),
@@ -660,7 +721,7 @@ class LevelsPage extends StatelessWidget {
               backgroundColor:
                   n == AppPrefs.level ? accent : panel,
               foregroundColor:
-                  n == AppPrefs.level ? bg : Colors.white70,
+                  n == AppPrefs.level ? Colors.white : textPrimary,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(10),
               ),
@@ -672,6 +733,7 @@ class LevelsPage extends StatelessWidget {
     );
   }
 }
+
 class SettingsPage extends StatefulWidget {
   const SettingsPage({super.key});
 
@@ -689,7 +751,7 @@ class _SettingsPageState extends State<SettingsPage> {
         children: [
           ListTile(
             title: Text(tr('language')),
-            leading: const Icon(Icons.language),
+            leading: const Icon(Icons.language, color: accent),
             trailing: DropdownButton<String>(
               value: AppPrefs.language,
               underline: const SizedBox(),
@@ -727,44 +789,27 @@ class _SettingsPageState extends State<SettingsPage> {
               await AppPrefs.save();
             },
           ),
-          const SizedBox(height: 20),
-          const Divider(),
+          SwitchListTile(
+            title: Text(tr('music')),
+            value: AppPrefs.music,
+            activeThumbColor: accent,
+            onChanged: (v) async {
+              await MusicService.setEnabled(v);
+              setState(() {});
+            },
+          ),
           const SizedBox(height: 12),
-          Text(
-            tr('about'),
-            style: TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Colors.white.withValues(alpha: 0.85),
-            ),
-          ),
-          const SizedBox(height: 10),
-          Text(
-            tr('description'),
-            style: TextStyle(
-              fontSize: 14,
-              height: 1.5,
-              color: Colors.white.withValues(alpha: 0.65),
-            ),
-          ),
-          const SizedBox(height: 20),
+          const Divider(),
           ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.person_outline, size: 22),
-            title: Text(tr('developer')),
-            subtitle: const Text('Saidov Islom'),
-          ),
-          ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: const Icon(Icons.flag_outlined, size: 22),
-            title: Text(tr('country')),
-            subtitle: const Text('Uzbekistan'),
-          ),
-          const ListTile(
-            contentPadding: EdgeInsets.zero,
-            leading: Icon(Icons.info_outline, size: 22),
-            title: Text('Version'),
-            subtitle: Text('1.2.0'),
+            leading: const Icon(Icons.info_outline, color: accent),
+            title: Text(tr('about')),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AboutPage()),
+              );
+            },
           ),
         ],
       ),
@@ -772,6 +817,70 @@ class _SettingsPageState extends State<SettingsPage> {
   }
 }
 
+class AboutPage extends StatelessWidget {
+  const AboutPage({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: Text(tr('about'))),
+      body: ListView(
+        padding: const EdgeInsets.all(24),
+        children: [
+          Center(
+            child: Container(
+              width: 80,
+              height: 80,
+              decoration: BoxDecoration(
+                color: accent.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: const Icon(Icons.hub_rounded, size: 42, color: accent),
+            ),
+          ),
+          const SizedBox(height: 16),
+          const Text(
+            'NeoLoop',
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 26,
+              fontWeight: FontWeight.w700,
+              color: textPrimary,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            tr('description'),
+            style: const TextStyle(
+              fontSize: 15,
+              height: 1.55,
+              color: textSecondary,
+            ),
+          ),
+          const SizedBox(height: 28),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.person_outline, color: accent),
+            title: Text(tr('developer')),
+            subtitle: const Text('Saidov Islom'),
+          ),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: const Icon(Icons.flag_outlined, color: accent),
+            title: Text(tr('country')),
+            subtitle: const Text('Uzbekistan'),
+          ),
+          const ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.info_outline, color: accent),
+            title: Text('Version'),
+            subtitle: Text('1.3.0'),
+          ),
+        ],
+      ),
+    );
+  }
+}
 class InfoPage extends StatelessWidget {
   final String titleKey;
   final String bodyKey;
@@ -794,14 +903,14 @@ class InfoPage extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(icon, size: 64, color: accent.withValues(alpha: 0.9)),
+              Icon(icon, size: 60, color: accent.withValues(alpha: 0.85)),
               const SizedBox(height: 18),
               Text(
                 tr(bodyKey),
                 textAlign: TextAlign.center,
-                style: TextStyle(
+                style: const TextStyle(
                   fontSize: 16,
-                  color: Colors.white.withValues(alpha: 0.75),
+                  color: textSecondary,
                 ),
               ),
             ],
@@ -1026,6 +1135,10 @@ class _GamePageState extends State<GamePage> {
       return;
     }
     won = true;
+
+    // Можно показать рекламу перед переходом
+    AdService.showInterstitial();
+
     showDialog<void>(
       context: context,
       barrierDismissible: false,
@@ -1035,9 +1148,6 @@ class _GamePageState extends State<GamePage> {
         onContinue: () {
           Navigator.pop(ctx);
           Navigator.pop(context, widget.number);
-        },
-        onTimeout: () {
-          Navigator.pop(ctx);
         },
       ),
     );
@@ -1077,9 +1187,7 @@ class _GamePageState extends State<GamePage> {
               '${tr('connected')}: $connectedCount/${data.colors} • '
               '${tr('filled')}: $filledPercent%',
               textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Colors.white.withValues(alpha: 0.8),
-              ),
+              style: const TextStyle(color: textSecondary),
             ),
           ),
           Expanded(
@@ -1087,7 +1195,7 @@ class _GamePageState extends State<GamePage> {
               child: AspectRatio(
                 aspectRatio: 1,
                 child: Padding(
-                  padding: const EdgeInsets.all(10),
+                  padding: const EdgeInsets.all(12),
                   child: LayoutBuilder(
                     builder: (context, box) {
                       final cell = box.maxWidth / n;
@@ -1132,9 +1240,9 @@ class _GamePageState extends State<GamePage> {
                     icon: const Icon(Icons.refresh, size: 18),
                     label: Text(tr('reset')),
                     style: OutlinedButton.styleFrom(
-                      foregroundColor: Colors.white70,
+                      foregroundColor: textSecondary,
                       side: BorderSide(
-                          color: Colors.white.withValues(alpha: 0.15)),
+                          color: Colors.black.withValues(alpha: 0.08)),
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -1148,8 +1256,8 @@ class _GamePageState extends State<GamePage> {
                     icon: const Icon(Icons.lightbulb_outline, size: 18),
                     label: Text('${tr('hint')} ($hintsLeft)'),
                     style: FilledButton.styleFrom(
-                      backgroundColor: accent.withValues(alpha: 0.9),
-                      foregroundColor: bg,
+                      backgroundColor: accent,
+                      foregroundColor: Colors.white,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -1165,17 +1273,16 @@ class _GamePageState extends State<GamePage> {
   }
 }
 
+/// Диалог победы: после 3 секунд автоматически переходит дальше
 class _WinDialog extends StatefulWidget {
   final int moves;
   final int hintsUsed;
   final VoidCallback onContinue;
-  final VoidCallback onTimeout;
 
   const _WinDialog({
     required this.moves,
     required this.hintsUsed,
     required this.onContinue,
-    required this.onTimeout,
   });
 
   @override
@@ -1185,7 +1292,6 @@ class _WinDialog extends StatefulWidget {
 class _WinDialogState extends State<_WinDialog> {
   int _secondsLeft = 3;
   Timer? _timer;
-  bool _pressed = false;
 
   @override
   void initState() {
@@ -1195,7 +1301,7 @@ class _WinDialogState extends State<_WinDialog> {
       setState(() => _secondsLeft--);
       if (_secondsLeft <= 0) {
         t.cancel();
-        if (!_pressed) widget.onTimeout();
+        widget.onContinue(); // автоматический переход
       }
     });
   }
@@ -1214,7 +1320,10 @@ class _WinDialogState extends State<_WinDialog> {
       title: Text(
         tr('won'),
         textAlign: TextAlign.center,
-        style: const TextStyle(fontWeight: FontWeight.w700),
+        style: const TextStyle(
+          fontWeight: FontWeight.w700,
+          color: textPrimary,
+        ),
       ),
       content: Column(
         mainAxisSize: MainAxisSize.min,
@@ -1223,22 +1332,23 @@ class _WinDialogState extends State<_WinDialog> {
             '${tr('moves')}: ${widget.moves}\n'
             '${tr('hintsUsed')}: ${widget.hintsUsed}',
             textAlign: TextAlign.center,
+            style: const TextStyle(color: textSecondary),
           ),
           const SizedBox(height: 18),
           Text(
             '$_secondsLeft',
-            style: TextStyle(
+            style: const TextStyle(
               fontSize: 42,
               fontWeight: FontWeight.w300,
-              color: accent.withValues(alpha: 0.9),
+              color: accent,
             ),
           ),
-          const SizedBox(height: 6),
+          const SizedBox(height: 4),
           Text(
-            tr('timerHint'),
+            '${tr('timerHint')} $_secondsLeft',
             style: TextStyle(
               fontSize: 13,
-              color: Colors.white.withValues(alpha: 0.5),
+              color: textSecondary.withValues(alpha: 0.8),
             ),
           ),
         ],
@@ -1246,16 +1356,13 @@ class _WinDialogState extends State<_WinDialog> {
       actionsAlignment: MainAxisAlignment.center,
       actions: [
         FilledButton(
-          onPressed: _secondsLeft > 0
-              ? () {
-                  _pressed = true;
-                  _timer?.cancel();
-                  widget.onContinue();
-                }
-              : null,
+          onPressed: () {
+            _timer?.cancel();
+            widget.onContinue();
+          },
           style: FilledButton.styleFrom(
             backgroundColor: accent,
-            foregroundColor: bg,
+            foregroundColor: Colors.white,
             minimumSize: const Size(140, 44),
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(12),
@@ -1292,23 +1399,23 @@ class GridPainter extends CustomPainter {
   void paint(Canvas canvas, Size size) {
     final cell = size.width / n;
 
-    final bgPaint = Paint()..color = glassColor.withValues(alpha: 0.22);
+    // Молочное полупрозрачное стекло
+    final bgPaint = Paint()..color = glassColor.withValues(alpha: 0.55);
     canvas.drawRRect(
       RRect.fromRectAndRadius(
         Rect.fromLTWH(0, 0, size.width, size.height),
-        const Radius.circular(12),
+        const Radius.circular(14),
       ),
       bgPaint,
     );
 
+    // Лёгкая клетчатость
     final checker = Paint()..style = PaintingStyle.fill;
     for (int y = 0; y < n; y++) {
       for (int x = 0; x < n; x++) {
-        if ((x + y).isEven) {
-          checker.color = Colors.white.withValues(alpha: 0.04);
-        } else {
-          checker.color = Colors.black.withValues(alpha: 0.06);
-        }
+        checker.color = (x + y).isEven
+            ? Colors.white.withValues(alpha: 0.25)
+            : Colors.black.withValues(alpha: 0.03);
         canvas.drawRect(
           Rect.fromLTWH(x * cell, y * cell, cell, cell),
           checker,
@@ -1316,10 +1423,11 @@ class GridPainter extends CustomPainter {
       }
     }
 
+    // Более толстые и мягкие линии сетки
     final grid = Paint()
-      ..color = Colors.white.withValues(alpha: 0.12)
+      ..color = Colors.black.withValues(alpha: 0.08)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 0.8;
+      ..strokeWidth = 1.3;
 
     for (int i = 0; i <= n; i++) {
       final pos = i * cell;
@@ -1330,18 +1438,18 @@ class GridPainter extends CustomPainter {
     void drawPath(List<int> p, Color color) {
       if (p.isEmpty) return;
       final paint = Paint()
-        ..color = color.withValues(alpha: 0.9)
+        ..color = color.withValues(alpha: 0.88)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = cell * 0.52
+        ..strokeWidth = cell * 0.58   // чуть шире
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round;
 
       final glow = Paint()
-        ..color = color.withValues(alpha: 0.15)
+        ..color = color.withValues(alpha: 0.12)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = cell * 0.8
+        ..strokeWidth = cell * 0.85
         ..strokeCap = StrokeCap.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
 
       final path = Path();
       Offset center(int c) =>
@@ -1363,6 +1471,7 @@ class GridPainter extends CustomPainter {
       drawPath(draft, colors[active!]);
     }
 
+    // Точки
     for (final e in endpoints.entries) {
       final c = e.key;
       final color = colors[e.value];
@@ -1370,14 +1479,14 @@ class GridPainter extends CustomPainter {
 
       canvas.drawCircle(
         center,
-        cell * 0.36,
+        cell * 0.38,
         Paint()..color = color.withValues(alpha: 0.18),
       );
-      canvas.drawCircle(center, cell * 0.27, Paint()..color = color);
+      canvas.drawCircle(center, cell * 0.29, Paint()..color = color);
       canvas.drawCircle(
         center,
-        cell * 0.11,
-        Paint()..color = bg.withValues(alpha: 0.7),
+        cell * 0.12,
+        Paint()..color = Colors.white.withValues(alpha: 0.7),
       );
     }
   }
@@ -1385,4 +1494,3 @@ class GridPainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant GridPainter old) => true;
 }
-
