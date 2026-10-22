@@ -1,5 +1,5 @@
 // ignore_for_file: prefer_const_constructors, const_with_non_const
-
+import 'splash.dart';
 import 'dart:async';
 import 'dart:math';
 
@@ -84,6 +84,60 @@ class MusicService {
     // await _player.play(AssetSource('music/calm.mp3'));
     _playing = true;
   }
+  class NeoLoopApp extends StatelessWidget {
+  const NeoLoopApp({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      title: 'NeoLoop',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        brightness: Brightness.light,
+        scaffoldBackgroundColor: bg,
+        colorScheme: ColorScheme.fromSeed(
+          seedColor: accent,
+          brightness: Brightness.light,
+        ),
+        useMaterial3: true,
+      ),
+      home: const SplashPage(),   // ← загрузочный экран
+    );
+  }
+}
+
+class BootPage extends StatefulWidget {
+  const BootPage({super.key});
+
+  @override
+  State<BootPage> createState() => _BootPageState();
+}
+
+class _BootPageState extends State<BootPage> {
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    await AppPrefs.load();
+    await MusicService.start();
+    if (mounted) setState(() => _ready = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_ready) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: accent)),
+      );
+    }
+    return const HomePage();
+  }
+}
 
   static Future<void> stop() async {
     // await _player.stop();
