@@ -87,6 +87,59 @@ class MusicService {
   class NeoLoopApp extends StatelessWidget {
   const NeoLoopApp({super.key});
 
+  
+
+class BootPage extends StatefulWidget {
+  const BootPage({super.key});
+
+  @override
+  State<BootPage> createState() => _BootPageState();
+}
+
+class _BootPageState extends State<BootPage> {
+  bool _ready = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _init();
+  }
+
+  Future<void> _init() async {
+    await AppPrefs.load();
+    await MusicService.start();
+    if (mounted) setState(() => _ready = true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (!_ready) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: accent)),
+      );
+    }
+    return const HomePage();
+  }
+}
+
+  static Future<void> stop() async {
+    // await _player.stop();
+    _playing = false;
+  }
+
+  static Future<void> setEnabled(bool value) async {
+    AppPrefs.music = value;
+    await AppPrefs.save();
+    if (value) {
+      await start();
+    } else {
+      await stop();
+    }
+  }
+}
+  class NeoLoopApp extends StatelessWidget {
+  const NeoLoopApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -136,22 +189,6 @@ class _BootPageState extends State<BootPage> {
       );
     }
     return const HomePage();
-  }
-}
-
-  static Future<void> stop() async {
-    // await _player.stop();
-    _playing = false;
-  }
-
-  static Future<void> setEnabled(bool value) async {
-    AppPrefs.music = value;
-    await AppPrefs.save();
-    if (value) {
-      await start();
-    } else {
-      await stop();
-    }
   }
 }
 const Map<String, Map<String, String>> strings = {
