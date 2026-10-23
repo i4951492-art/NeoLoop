@@ -1,5 +1,4 @@
-// ignore_for_file: prefer_const_constructors, const_with_non_const, prefer_const_literals_to_create_immutables
-
+// ignore_for_file: prefer_const_constructors, const_with_non_const, prefer_const_literals_to_create_immutables, curly_braces_in_flow_control_structures, unused_element, use_build_context_synchronously
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
