@@ -1,4 +1,5 @@
 // ignore_for_file: prefer_const_constructors, const_with_non_const, prefer_const_literals_to_create_immutables, curly_braces_in_flow_control_structures, unused_element, use_build_context_synchronously
+
 import 'dart:async';
 import 'dart:math';
 import 'package:flutter/material.dart';
@@ -6,18 +7,20 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 void main() => runApp(const NeoLoopApp());
 
-const Color bg = Color(0xFFF5F7F4);
+// Детская яркая палитра
+const Color bg = Color(0xFFFFF8E7);
 const Color panel = Color(0xFFFFFFFF);
-const Color accent = Color(0xFF6B9B7A);
-const Color accentGreen = Color(0xFF4CAF7A);
-const Color textPrimary = Color(0xFF2C3E50);
-const Color textSecondary = Color(0xFF6B7C8A);
+const Color accent = Color(0xFFFF6B9D);
+const Color accent2 = Color(0xFF7C4DFF);
+const Color accent3 = Color(0xFF00C853);
+const Color accent4 = Color(0xFFFF9100);
+const Color accent5 = Color(0xFF00B0FF);
+const Color textPrimary = Color(0xFF3E2723);
+const Color textSecondary = Color(0xFF6D4C41);
 const int totalLevels = 130;
 
 class AppPrefs {
-  static const languages = [
-    'ru', 'uz', 'en', 'uk', 'kk', 'ja', 'de', 'fr', 'es', 'zh'
-  ];
+  static const languages = ['ru', 'uz', 'en', 'uk', 'kk', 'ja', 'de', 'fr', 'es', 'zh'];
   static String language = 'ru';
   static bool sound = true;
   static bool effects = true;
@@ -26,7 +29,7 @@ class AppPrefs {
   static int completed = 0;
   static int hints = 3;
   static int totalWins = 0;
-  static int lastWheelDay = 0; // yyyyMMdd
+  static int lastWheelDay = 0;
 
   static Future<void> load() async {
     final p = await SharedPreferences.getInstance();
@@ -64,32 +67,22 @@ class AppPrefs {
 }
 class AdService {
   static bool adsEnabled = true;
-
   static Future<bool> showRewarded() async {
     if (!adsEnabled) return false;
-    // TODO: реальная реклама (AdMob и т.д.)
-    await Future.delayed(const Duration(milliseconds: 800));
-    return true; // для теста считаем, что реклама просмотрена
-  }
-
-  static Future<void> showInterstitial() async {
-    if (!adsEnabled) return;
+    await Future.delayed(const Duration(milliseconds: 700));
+    return true;
   }
 }
 
 class MusicService {
   static bool _playing = false;
-
   static Future<void> start() async {
     if (!AppPrefs.music || _playing) return;
     _playing = true;
-    // TODO: audioplayers + assets/music/calm.mp3
   }
-
   static Future<void> stop() async {
     _playing = false;
   }
-
   static Future<void> setEnabled(bool v) async {
     AppPrefs.music = v;
     await AppPrefs.save();
@@ -98,36 +91,13 @@ class MusicService {
 }
 
 class LevelStats {
-  final int level;
-  final int seconds;
-  final int hintsUsed;
-  final double avgDecisionMs; // средняя скорость решения пути
-
-  LevelStats({
-    required this.level,
-    required this.seconds,
-    required this.hintsUsed,
-    required this.avgDecisionMs,
-  });
-
-  Map<String, dynamic> toJson() => {
-        'l': level,
-        's': seconds,
-        'h': hintsUsed,
-        'd': avgDecisionMs,
-      };
-
-  static LevelStats fromJson(Map<String, dynamic> j) => LevelStats(
-        level: j['l'] ?? 0,
-        seconds: j['s'] ?? 0,
-        hintsUsed: j['h'] ?? 0,
-        avgDecisionMs: (j['d'] ?? 0).toDouble(),
-      );
+  final int level, seconds, hintsUsed;
+  final double avgDecisionMs;
+  LevelStats({required this.level, required this.seconds, required this.hintsUsed, required this.avgDecisionMs});
 }
 
 class StatsStore {
   static final List<LevelStats> history = [];
-
   static Future<void> load() async {
     final p = await SharedPreferences.getInstance();
     final raw = p.getStringList('stats') ?? [];
@@ -135,191 +105,150 @@ class StatsStore {
     for (final s in raw) {
       try {
         final parts = s.split('|');
-        history.add(LevelStats(
-          level: int.parse(parts[0]),
-          seconds: int.parse(parts[1]),
-          hintsUsed: int.parse(parts[2]),
-          avgDecisionMs: double.parse(parts[3]),
-        ));
+        history.add(LevelStats(level: int.parse(parts[0]), seconds: int.parse(parts[1]), hintsUsed: int.parse(parts[2]), avgDecisionMs: double.parse(parts[3])));
       } catch (_) {}
     }
   }
-
   static Future<void> add(LevelStats st) async {
     history.removeWhere((e) => e.level == st.level);
     history.add(st);
     history.sort((a, b) => a.level.compareTo(b.level));
     final p = await SharedPreferences.getInstance();
-    await p.setStringList(
-      'stats',
-      history
-          .map((e) => '${e.level}|${e.seconds}|${e.hintsUsed}|${e.avgDecisionMs}')
-          .toList(),
-    );
+    await p.setStringList('stats', history.map((e) => '${e.level}|${e.seconds}|${e.hintsUsed}|${e.avgDecisionMs}').toList());
   }
 }
 const Map<String, Map<String, String>> strings = {
   'ru': {
-    'tagline': 'Спокойная логическая головоломка',
-    'play': 'ИГРАТЬ',
-    'settings': 'Настройки',
-    'levels': 'Уровни',
-    'leaderboard': 'Таблица лидеров',
-    'duel': 'Дуэль 1 на 1',
-    'level': 'УРОВЕНЬ',
-    'connect': 'Соедини пары и заполни всё поле',
-    'connected': 'Соединено',
-    'filled': 'Заполнено',
-    'hint': 'Подсказка',
-    'reset': 'Сначала',
-    'next': 'На следующий уровень',
-    'toMenu': 'В меню',
-    'won': 'Уровень пройден!',
-    'moves': 'Ходов',
-    'hintsUsed': 'Подсказок',
-    'timeSpent': 'Время',
-    'decisionSpeed': 'Скорость решения',
-    'language': 'Язык',
-    'sound': 'Звук',
-    'effects': 'Эффекты',
-    'music': 'Музыка',
-    'done': 'Пройдено',
-    'offline': 'Офлайн • Прогресс сохраняется',
-    'noHints': 'Подсказки закончились',
-    'hintShown': 'Показан правильный путь',
-    'developer': 'Разработчик',
-    'country': 'Страна',
-    'description':
-        'NeoLoop — спокойная логическая головоломка. Соединяй пары цветных точек и заполняй поле.',
-    'coming': 'Скоро в обновлениях.',
-    'levelSelect': 'Выбери уровень',
-    'about': 'О приложении',
-    'timerHint': 'Автовозврат в меню через',
-    'hintsShop': 'Подсказки',
-    'results': 'Результаты',
-    'sellHints': 'Продать подсказки',
-    'buyHints': 'Купить подсказки',
-    'adHints': 'За рекламу (+3)',
-    'wheel': 'Колесо фортуны',
-    'spin': 'Крутить',
-    'wheelDone': 'Уже крутили сегодня',
-    'wheelAvailable': 'Колесо фортуны доступно!',
-    'sec': 'сек',
-    'ms': 'мс',
+    'tagline': 'Яркая логическая головоломка для детей',
+    'play': 'ИГРАТЬ', 'settings': 'Настройки', 'levels': 'Уровни',
+    'level': 'УРОВЕНЬ', 'connect': 'Соедини одинаковые цвета!',
+    'connected': 'Соединено', 'filled': 'Заполнено', 'hint': 'Подсказка',
+    'reset': 'Заново', 'next': 'Следующий уровень', 'toMenu': 'В меню',
+    'won': 'Ура! Уровень пройден!', 'moves': 'Ходов', 'hintsUsed': 'Подсказок',
+    'timeSpent': 'Время', 'decisionSpeed': 'Скорость', 'language': 'Язык',
+    'sound': 'Звук', 'effects': 'Эффекты', 'music': 'Музыка', 'done': 'Пройдено',
+    'offline': 'Офлайн • Прогресс сохраняется', 'noHints': 'Подсказки закончились',
+    'hintShown': 'Вот правильный путь!', 'developer': 'Студия', 'country': 'Страна',
+    'description': 'NeoLoop — весёлая игра для детей. Соединяй цветные точки линиями и заполни всё поле. Чем дальше — тем интереснее!',
+    'coming': 'Скоро появится!', 'levelSelect': 'Выбери уровень', 'about': 'О игре',
+    'timerHint': 'В меню через', 'hintsShop': 'Подсказки', 'results': 'Мои результаты',
+    'sellHints': 'Продать подсказки', 'buyHints': 'Купить подсказки',
+    'adHints': 'За рекламу (+3)', 'wheel': 'Колесо удачи', 'spin': 'Крутить!',
+    'wheelDone': 'Уже крутили сегодня', 'wheelAvailable': 'Колесо удачи готово!',
+    'sec': 'сек', 'ms': 'мс', 'howTo': 'Как играть',
+    'howToBody': '1. Нажми на цветную точку.\n2. Веди палец к такой же точке.\n3. Линия не должна пересекать другие.\n4. Заполни все клетки.\n5. Подсказка показывает один правильный путь.\n\nУдачи!',
   },
   'en': {
-    'tagline': 'A calm logic puzzle',
-    'play': 'PLAY',
-    'settings': 'Settings',
-    'levels': 'Levels',
-    'leaderboard': 'Leaderboard',
-    'duel': '1 vs 1 Duel',
-    'level': 'LEVEL',
-    'connect': 'Connect pairs and fill the board',
-    'connected': 'Connected',
-    'filled': 'Filled',
-    'hint': 'Hint',
-    'reset': 'Restart',
-    'next': 'Next level',
-    'toMenu': 'To menu',
-    'won': 'Level complete!',
-    'moves': 'Moves',
-    'hintsUsed': 'Hints',
-    'timeSpent': 'Time',
-    'decisionSpeed': 'Decision speed',
-    'language': 'Language',
-    'sound': 'Sound',
-    'effects': 'Effects',
-    'music': 'Music',
-    'done': 'Completed',
-    'offline': 'Offline • Progress saved',
-    'noHints': 'No hints left',
-    'hintShown': 'Correct path revealed',
-    'developer': 'Developer',
-    'country': 'Country',
-    'description': 'NeoLoop is a calm logic puzzle. Connect dots and fill the board.',
-    'coming': 'Coming soon.',
-    'levelSelect': 'Choose a level',
-    'about': 'About',
-    'timerHint': 'Return to menu in',
-    'hintsShop': 'Hints',
-    'results': 'Results',
-    'sellHints': 'Sell hints',
-    'buyHints': 'Buy hints',
-    'adHints': 'Watch ad (+3)',
-    'wheel': 'Fortune wheel',
-    'spin': 'Spin',
-    'wheelDone': 'Already spun today',
-    'wheelAvailable': 'Fortune wheel is ready!',
-    'sec': 'sec',
-    'ms': 'ms',
+    'tagline': 'A bright logic puzzle for kids',
+    'play': 'PLAY', 'settings': 'Settings', 'levels': 'Levels',
+    'level': 'LEVEL', 'connect': 'Connect matching colors!',
+    'connected': 'Connected', 'filled': 'Filled', 'hint': 'Hint',
+    'reset': 'Restart', 'next': 'Next level', 'toMenu': 'Menu',
+    'won': 'Yay! Level complete!', 'moves': 'Moves', 'hintsUsed': 'Hints',
+    'timeSpent': 'Time', 'decisionSpeed': 'Speed', 'language': 'Language',
+    'sound': 'Sound', 'effects': 'Effects', 'music': 'Music', 'done': 'Done',
+    'offline': 'Offline • Progress saved', 'noHints': 'No hints left',
+    'hintShown': 'Here is the path!', 'developer': 'Studio', 'country': 'Country',
+    'description': 'NeoLoop is a fun puzzle for kids. Connect colored dots with lines and fill the whole board. The further you go, the more exciting it gets!',
+    'coming': 'Coming soon!', 'levelSelect': 'Choose a level', 'about': 'About',
+    'timerHint': 'Back to menu in', 'hintsShop': 'Hints', 'results': 'My results',
+    'sellHints': 'Sell hints', 'buyHints': 'Buy hints',
+    'adHints': 'Watch ad (+3)', 'wheel': 'Lucky wheel', 'spin': 'Spin!',
+    'wheelDone': 'Already spun today', 'wheelAvailable': 'Lucky wheel is ready!',
+    'sec': 'sec', 'ms': 'ms', 'howTo': 'How to play',
+    'howToBody': '1. Tap a colored dot.\n2. Drag to the matching dot.\n3. Paths must not cross.\n4. Fill every cell.\n5. A hint shows one correct path.\n\nHave fun!',
   },
 };
-// продолжение строк (остальные языки — краткие)
-void _addLang(String code, Map<String, String> base) {
-  // helper не нужен в runtime, строки добавим прямо
-}
-
-// Добавляем остальные языки упрощённо (чтобы файл не раздувался)
 final Map<String, Map<String, String>> _extra = {
   'uz': {
-    'play': 'O‘YNASH', 'settings': 'Sozlamalar', 'levels': 'Bosqichlar',
-    'next': 'Keyingi bosqich', 'toMenu': 'Menyu', 'won': 'Bosqich tugadi!',
-    'hint': 'Maslahat', 'hintsShop': 'Maslahatlar', 'results': 'Natijalar',
-    'about': 'Ilova haqida', 'music': 'Musiqa', 'language': 'Til',
+    'tagline': 'Bolalar uchun yorqin o‘yin', 'play': 'O‘YNASH', 'settings': 'Sozlamalar',
+    'levels': 'Bosqichlar', 'level': 'BOSQICH', 'connect': 'Bir xil ranglarni ulang!',
+    'hint': 'Maslahat', 'reset': 'Qayta', 'next': 'Keyingi', 'toMenu': 'Menyu',
+    'won': 'Tabriklaymiz!', 'about': 'O‘yin haqida', 'howTo': 'Qanday o‘ynash',
+    'description': 'NeoLoop — bolalar uchun quvnoq o‘yin. Rangli nuqtalarni chiziq bilan ulang va maydonni to‘ldiring!',
+    'howToBody': '1. Rangli nuqtaga bosing.\n2. Xuddi shunday nuqtaga torting.\n3. Chiziqlar kesishmasin.\n4. Barcha kataklarni to‘ldiring.\n5. Maslahat to‘g‘ri yo‘lni ko‘rsatadi.',
+    'hintsShop': 'Maslahatlar', 'results': 'Natijalar', 'wheel': 'Omad g‘ildiragi', 'spin': 'Aylantirish',
+    'music': 'Musiqa', 'language': 'Til', 'coming': 'Tez orada!',
   },
   'uk': {
-    'play': 'ГРАТИ', 'settings': 'Налаштування', 'levels': 'Рівні',
-    'next': 'Наступний рівень', 'toMenu': 'В меню', 'won': 'Рівень пройдено!',
-    'hint': 'Підказка', 'hintsShop': 'Підказки', 'results': 'Результати',
-    'about': 'Про застосунок', 'music': 'Музика', 'language': 'Мова',
+    'tagline': 'Яскрава головоломка для дітей', 'play': 'ГРАТИ', 'settings': 'Налаштування',
+    'levels': 'Рівні', 'level': 'РІВЕНЬ', 'connect': 'З’єднай однакові кольори!',
+    'hint': 'Підказка', 'reset': 'Спочатку', 'next': 'Далі', 'toMenu': 'В меню',
+    'won': 'Ура! Рівень пройдено!', 'about': 'Про гру', 'howTo': 'Як грати',
+    'description': 'NeoLoop — весела гра для дітей. З’єднуй кольорові точки лініями і заповнюй усе поле!',
+    'howToBody': '1. Натисни на кольорову точку.\n2. Веди до такої ж точки.\n3. Лінії не повинні перетинатися.\n4. Заповни всі клітинки.\n5. Підказка показує правильний шлях.',
+    'hintsShop': 'Підказки', 'results': 'Результати', 'wheel': 'Колесо удачі', 'spin': 'Крутити',
+    'music': 'Музика', 'language': 'Мова', 'coming': 'Незабаром!',
   },
   'kk': {
-    'play': 'ОЙНАУ', 'settings': 'Баптаулар', 'levels': 'Деңгейлер',
-    'next': 'Келесі деңгей', 'toMenu': 'Мәзір', 'won': 'Деңгей аяқталды!',
-    'hint': 'Кеңес', 'hintsShop': 'Кеңестер', 'results': 'Нәтижелер',
-    'about': 'Қосымша туралы', 'music': 'Музыка', 'language': 'Тіл',
+    'tagline': 'Балаларға арналған жарқын ойын', 'play': 'ОЙНАУ', 'settings': 'Баптаулар',
+    'levels': 'Деңгейлер', 'level': 'ДЕҢГЕЙ', 'connect': 'Бірдей түстерді қос!',
+    'hint': 'Кеңес', 'reset': 'Қайта', 'next': 'Келесі', 'toMenu': 'Мәзір',
+    'won': 'Жарайсың!', 'about': 'Ойын туралы', 'howTo': 'Қалай ойнау',
+    'description': 'NeoLoop — балаларға арналған көңілді ойын. Түсті нүктелерді сызықпен қосып, бүкіл өрісті толтыр!',
+    'howToBody': '1. Түсті нүктені бас.\n2. Сол түске қарай сыз.\n3. Сызықтар қиылыспасын.\n4. Барлық ұяшықтарды толтыр.\n5. Кеңес дұрыс жолды көрсетеді.',
+    'hintsShop': 'Кеңестер', 'results': 'Нәтижелер', 'wheel': 'Сәттік дөңгелек', 'spin': 'Айналдыру',
+    'music': 'Музыка', 'language': 'Тіл', 'coming': 'Жақында!',
   },
+};
+final Map<String, Map<String, String>> _extra2 = {
   'ja': {
-    'play': 'プレイ', 'settings': '設定', 'levels': 'レベル',
-    'next': '次のレベル', 'toMenu': 'メニューへ', 'won': 'クリア！',
-    'hint': 'ヒント', 'hintsShop': 'ヒント', 'results': '成績',
-    'about': 'アプリについて', 'music': '音楽', 'language': '言語',
+    'tagline': '子ども向けのかわいいパズル', 'play': 'プレイ', 'settings': '設定',
+    'levels': 'レベル', 'level': 'レベル', 'connect': '同じ色をつなげて！',
+    'hint': 'ヒント', 'reset': 'リセット', 'next': '次のレベル', 'toMenu': 'メニュー',
+    'won': 'クリア！すごい！', 'about': 'このアプリについて', 'howTo': '遊び方',
+    'description': 'NeoLoopは子ども向けの楽しいパズルです。色の点をつないで、マスを全部うめましょう！',
+    'howToBody': '1. 色の点をタッチ\n2. 同じ色までなぞる\n3. 線はクロスしない\n4. 全部うめる\n5. ヒントで正しい道がわかるよ',
+    'hintsShop': 'ヒント', 'results': 'せいせき', 'wheel': 'ラッキールーレット', 'spin': 'まわす',
+    'music': 'おんがく', 'language': 'ことば', 'coming': 'もうすぐ！',
   },
   'de': {
-    'play': 'SPIELEN', 'settings': 'Einstellungen', 'levels': 'Level',
-    'next': 'Nächstes Level', 'toMenu': 'Zum Menü', 'won': 'Level geschafft!',
-    'hint': 'Hinweis', 'hintsShop': 'Hinweise', 'results': 'Ergebnisse',
-    'about': 'Über die App', 'music': 'Musik', 'language': 'Sprache',
+    'tagline': 'Buntes Logikspiel für Kinder', 'play': 'SPIELEN', 'settings': 'Einstellungen',
+    'levels': 'Level', 'level': 'LEVEL', 'connect': 'Gleiche Farben verbinden!',
+    'hint': 'Tipp', 'reset': 'Neu', 'next': 'Nächstes Level', 'toMenu': 'Menü',
+    'won': 'Super! Level geschafft!', 'about': 'Über das Spiel', 'howTo': 'So spielt man',
+    'description': 'NeoLoop ist ein fröhliches Puzzle für Kinder. Verbinde bunte Punkte und fülle das ganze Feld!',
+    'howToBody': '1. Tippe auf einen Punkt.\n2. Ziehe zum gleichen Punkt.\n3. Linien dürfen sich nicht kreuzen.\n4. Fülle alle Felder.\n5. Ein Tipp zeigt den richtigen Weg.',
+    'hintsShop': 'Tipps', 'results': 'Ergebnisse', 'wheel': 'Glücksrad', 'spin': 'Drehen',
+    'music': 'Musik', 'language': 'Sprache', 'coming': 'Bald!',
   },
   'fr': {
-    'play': 'JOUER', 'settings': 'Paramètres', 'levels': 'Niveaux',
-    'next': 'Niveau suivant', 'toMenu': 'Menu', 'won': 'Niveau terminé !',
-    'hint': 'Indice', 'hintsShop': 'Indices', 'results': 'Résultats',
-    'about': 'À propos', 'music': 'Musique', 'language': 'Langue',
+    'tagline': 'Puzzle coloré pour enfants', 'play': 'JOUER', 'settings': 'Réglages',
+    'levels': 'Niveaux', 'level': 'NIVEAU', 'connect': 'Relie les mêmes couleurs !',
+    'hint': 'Indice', 'reset': 'Recommencer', 'next': 'Niveau suivant', 'toMenu': 'Menu',
+    'won': 'Bravo ! Niveau terminé !', 'about': 'À propos', 'howTo': 'Comment jouer',
+    'description': 'NeoLoop est un puzzle amusant pour enfants. Relie les points de couleur et remplis tout le plateau !',
+    'howToBody': '1. Touche un point coloré.\n2. Glisse jusqu’au même point.\n3. Les lignes ne se croisent pas.\n4. Remplis toutes les cases.\n5. Un indice montre le bon chemin.',
+    'hintsShop': 'Indices', 'results': 'Résultats', 'wheel': 'Roue de la chance', 'spin': 'Tourner',
+    'music': 'Musique', 'language': 'Langue', 'coming': 'Bientôt !',
   },
   'es': {
-    'play': 'JUGAR', 'settings': 'Ajustes', 'levels': 'Niveles',
-    'next': 'Siguiente nivel', 'toMenu': 'Al menú', 'won': '¡Nivel completado!',
-    'hint': 'Pista', 'hintsShop': 'Pistas', 'results': 'Resultados',
-    'about': 'Acerca de', 'music': 'Música', 'language': 'Idioma',
+    'tagline': 'Puzzle brillante para niños', 'play': 'JUGAR', 'settings': 'Ajustes',
+    'levels': 'Niveles', 'level': 'NIVEL', 'connect': '¡Conecta los mismos colores!',
+    'hint': 'Pista', 'reset': 'Reiniciar', 'next': 'Siguiente', 'toMenu': 'Menú',
+    'won': '¡Bien! Nivel completado', 'about': 'Acerca de', 'howTo': 'Cómo jugar',
+    'description': 'NeoLoop es un puzzle divertido para niños. Conecta los puntos de colores y llena todo el tablero.',
+    'howToBody': '1. Toca un punto de color.\n2. Arrastra hasta el mismo color.\n3. Las líneas no se cruzan.\n4. Llena todas las casillas.\n5. Una pista muestra el camino correcto.',
+    'hintsShop': 'Pistas', 'results': 'Resultados', 'wheel': 'Ruleta de la suerte', 'spin': 'Girar',
+    'music': 'Música', 'language': 'Idioma', 'coming': '¡Pronto!',
   },
   'zh': {
-    'play': '开始', 'settings': '设置', 'levels': '关卡',
-    'next': '下一关', 'toMenu': '返回菜单', 'won': '过关！',
-    'hint': '提示', 'hintsShop': '提示', 'results': '成绩',
-    'about': '关于', 'music': '音乐', 'language': '语言',
+    'tagline': '给孩子们的彩色益智游戏', 'play': '开始', 'settings': '设置',
+    'levels': '关卡', 'level': '关卡', 'connect': '连接相同的颜色！',
+    'hint': '提示', 'reset': '重来', 'next': '下一关', 'toMenu': '菜单',
+    'won': '太棒了！过关啦！', 'about': '关于游戏', 'howTo': '怎么玩',
+    'description': 'NeoLoop 是一款适合孩子的趣味拼图。用线连接彩色点，填满整个棋盘吧！',
+    'howToBody': '1. 点击彩色点。\n2. 拖到相同颜色。\n3. 线条不能交叉。\n4. 填满所有格子。\n5. 提示会显示正确路线。',
+    'hintsShop': '提示', 'results': '成绩', 'wheel': '幸运转盘', 'spin': '旋转',
+    'music': '音乐', 'language': '语言', 'coming': '即将推出！',
   },
 };
 
 String tr(String key) {
   final lang = AppPrefs.language;
-  if (strings.containsKey(lang) && strings[lang]!.containsKey(key)) {
-    return strings[lang]![key]!;
-  }
-  if (_extra.containsKey(lang) && _extra[lang]!.containsKey(key)) {
-    return _extra[lang]![key]!;
-  }
+  if (strings[lang]?[key] != null) return strings[lang]![key]!;
+  if (_extra[lang]?[key] != null) return _extra[lang]![key]!;
+  if (_extra2[lang]?[key] != null) return _extra2[lang]![key]!;
   return strings['en']?[key] ?? strings['ru']?[key] ?? key;
 }
 class LevelData {
@@ -327,26 +256,22 @@ class LevelData {
   final Map<int, int> endpoints;
   final List<List<int>> solution;
   const LevelData(this.width, this.height, this.colors, this.endpoints, this.solution);
-  int get size => width; // совместимость
   int get cells => width * height;
 }
 
 class LevelGenerator {
-  /// Ширина: растёт до 15 и останавливается
   static int widthFor(int level) {
     if (level <= 11) return (4 + level).clamp(5, 15);
     return 15;
   }
 
-  /// Высота: после 15×15 растёт до 30
   static int heightFor(int level) {
     if (level <= 11) return widthFor(level);
     if (level <= 30) return 15;
     return (15 + (level - 30)).clamp(15, 30);
   }
 
-  static double _t(int level) =>
-      ((level.clamp(1, totalLevels) - 1) / (totalLevels - 1)).toDouble();
+  static double _t(int level) => ((level.clamp(1, totalLevels) - 1) / (totalLevels - 1)).toDouble();
 
   static int colorCount(int level) {
     final cells = widthFor(level) * heightFor(level);
@@ -367,7 +292,9 @@ class LevelGenerator {
       }
     }
     final pos = List<int>.filled(n, 0);
-    for (int i = 0; i < n; i++) pos[path[i]] = i;
+    for (int i = 0; i < n; i++) {
+      pos[path[i]] = i;
+    }
 
     void reverse(int a, int b) {
       while (a < b) {
@@ -405,7 +332,9 @@ class LevelGenerator {
     final rest = n - k * minSeg;
     final lengths = List<int>.generate(k, (i) => minSeg + (rest * weights[i] / sum).floor());
     var left = n - lengths.fold<int>(0, (a, b) => a + b);
-    while (left-- > 0) lengths[rnd.nextInt(k)]++;
+    while (left-- > 0) {
+      lengths[rnd.nextInt(k)]++;
+    }
 
     final solutions = <List<int>>[];
     final endpoints = <int, int>{};
@@ -421,18 +350,23 @@ class LevelGenerator {
   }
 }
 
-List<Color> buildPalette(int n) => List.generate(
-      n,
-      (i) => HSVColor.fromAHSV(1, (i * 137.508) % 360, 0.45, 0.78).toColor(),
-    );
+List<Color> buildPalette(int n) {
+  const base = [
+    Color(0xFFFF5252), Color(0xFFFF9100), Color(0xFFFFD600),
+    Color(0xFF69F0AE), Color(0xFF40C4FF), Color(0xFF7C4DFF),
+    Color(0xFFFF4081), Color(0xFF18FFFF), Color(0xFFB2FF59),
+    Color(0xFFFF6E40), Color(0xFFEA80FC), Color(0xFF64FFDA),
+  ];
+  return List.generate(n, (i) => base[i % base.length]);
+}
 
-Color glassColorForLevel(int level) {
-  final hue = 90 + (level * 3) % 40;
-  return HSVColor.fromAHSV(1, hue.toDouble(), 0.12, 0.94).toColor();
+Color boardColorForLevel(int level) {
+  final hues = [20.0, 45.0, 90.0, 160.0, 200.0, 280.0, 320.0];
+  final h = hues[level % hues.length];
+  return HSVColor.fromAHSV(1, h, 0.25, 0.97).toColor();
 }
 class NeoLoopApp extends StatelessWidget {
   const NeoLoopApp({super.key});
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -443,11 +377,8 @@ class NeoLoopApp extends StatelessWidget {
         scaffoldBackgroundColor: bg,
         colorScheme: ColorScheme.fromSeed(seedColor: accent, brightness: Brightness.light),
         useMaterial3: true,
-        appBarTheme: const AppBarTheme(
-          backgroundColor: bg,
-          foregroundColor: textPrimary,
-          elevation: 0,
-        ),
+        appBarTheme: const AppBarTheme(backgroundColor: bg, foregroundColor: textPrimary, elevation: 0),
+        fontFamily: null,
       ),
       home: const SplashPage(),
     );
@@ -462,29 +393,22 @@ class SplashPage extends StatefulWidget {
 
 class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateMixin {
   late final AnimationController _c;
-
   @override
   void initState() {
     super.initState();
-    _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 5200))..forward();
+    _c = AnimationController(vsync: this, duration: const Duration(milliseconds: 5500))..forward();
     _c.addStatusListener((s) {
       if (s == AnimationStatus.completed && mounted) {
-        Navigator.of(context).pushReplacement(
-          PageRouteBuilder(
-            pageBuilder: (_, __, ___) => const BootPage(),
-            transitionDuration: const Duration(milliseconds: 400),
-            transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
-          ),
-        );
+        Navigator.of(context).pushReplacement(PageRouteBuilder(
+          pageBuilder: (_, __, ___) => const BootPage(),
+          transitionDuration: const Duration(milliseconds: 400),
+          transitionsBuilder: (_, a, __, child) => FadeTransition(opacity: a, child: child),
+        ));
       }
     });
   }
-
   @override
-  void dispose() {
-    _c.dispose();
-    super.dispose();
-  }
+  void dispose() { _c.dispose(); super.dispose(); }
 
   @override
   Widget build(BuildContext context) {
@@ -492,10 +416,7 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
       backgroundColor: Colors.white,
       body: AnimatedBuilder(
         animation: _c,
-        builder: (_, __) => CustomPaint(
-          painter: _SplashPainter(t: _c.value),
-          child: const SizedBox.expand(),
-        ),
+        builder: (_, __) => CustomPaint(painter: _SplashPainter(t: _c.value), child: const SizedBox.expand()),
       ),
     );
   }
@@ -504,69 +425,52 @@ class _SplashPageState extends State<SplashPage> with SingleTickerProviderStateM
 class _SplashPainter extends CustomPainter {
   final double t;
   _SplashPainter({required this.t});
-
   double get progress {
-    final v = ((t - 0.05) / 0.8).clamp(0.0, 1.0);
+    final v = ((t - 0.06) / 0.78).clamp(0.0, 1.0);
     return 0.75 * v + 0.25 * (0.5 - 0.5 * cos(pi * v));
   }
-
   double get gain {
-    if (t < 0.05) return t / 0.05;
+    if (t < 0.06) return t / 0.06;
     if (t > 0.9) return 1 - (t - 0.9) / 0.1;
     return 1;
   }
-
   @override
   void paint(Canvas canvas, Size size) {
     final w = size.width, h = size.height, s = w / 390;
     canvas.drawRect(Offset.zero & size, Paint()..color = Colors.white);
     final p = progress, g = gain;
-
     const text = 'VOSITA';
-    final style = TextStyle(fontSize: 56 * s, fontWeight: FontWeight.w800, letterSpacing: 3 * s, color: const Color(0xFF0A0C0B));
+    final style = TextStyle(fontSize: 58 * s, fontWeight: FontWeight.w900, letterSpacing: 4 * s, color: const Color(0xFF0A0C0B));
     final tp = TextPainter(text: TextSpan(text: text, style: style), textDirection: TextDirection.ltr)..layout();
-    final dx = (w - tp.width) / 2;
-    final dy = h * 0.36 - tp.height / 2;
+    final dx = (w - tp.width) / 2, dy = h * 0.35 - tp.height / 2;
     tp.paint(canvas, Offset(dx, dy));
-
     if (g > 0.02) {
       final beamX = dx + p * tp.width;
-      final ray = Paint()
-        ..shader = LinearGradient(colors: [
-          Colors.transparent,
-          Color.fromRGBO(0, 240, 90, 0.3 * g),
-          Color.fromRGBO(0, 240, 90, 0.95 * g),
-          Color.fromRGBO(230, 255, 240, 0.95 * g),
-          Color.fromRGBO(0, 240, 90, 0.95 * g),
-          Color.fromRGBO(0, 240, 90, 0.3 * g),
-          Colors.transparent,
-        ]).createShader(Rect.fromLTWH(beamX - 60 * s, dy, 120 * s, tp.height));
-      canvas.drawRect(Rect.fromLTWH(beamX - 60 * s, dy - 6 * s, 120 * s, tp.height + 12 * s), ray);
-      canvas.drawCircle(Offset(beamX, dy + tp.height * 0.55), 6 * s,
-          Paint()..color = Color.fromRGBO(230, 255, 242, 0.95 * g)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 8));
+      final ray = Paint()..shader = LinearGradient(colors: [
+        Colors.transparent,
+        Color.fromRGBO(0, 240, 90, 0.25 * g),
+        Color.fromRGBO(0, 240, 90, 0.95 * g),
+        Color.fromRGBO(230, 255, 240, 0.98 * g),
+        Color.fromRGBO(0, 240, 90, 0.95 * g),
+        Color.fromRGBO(0, 240, 90, 0.25 * g),
+        Colors.transparent,
+      ]).createShader(Rect.fromLTWH(beamX - 70 * s, dy, 140 * s, tp.height));
+      canvas.drawRect(Rect.fromLTWH(beamX - 70 * s, dy - 8 * s, 140 * s, tp.height + 16 * s), ray);
+      canvas.drawCircle(Offset(beamX, dy + tp.height * 0.55), 7 * s,
+        Paint()..color = Color.fromRGBO(230, 255, 242, 0.95 * g)..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10));
     }
-
-    final bw = 260.0 * s, bh = 20.0 * s, bx = (w - bw) / 2, by = h * 0.62;
-    final outer = RRect.fromRectAndRadius(Rect.fromLTWH(bx, by, bw, bh), Radius.circular(bh / 2));
-    canvas.drawRRect(outer, Paint()..color = const Color(0xFFE8EEEA));
+    final bw = 270.0 * s, bh = 22.0 * s, bx = (w - bw) / 2, by = h * 0.62;
+    canvas.drawRRect(RRect.fromRectAndRadius(Rect.fromLTWH(bx, by, bw, bh), Radius.circular(bh / 2)), Paint()..color = const Color(0xFFE8EEEA));
     final fw = (bw - 6 * s) * p;
     if (fw > 1) {
-      final fill = RRect.fromRectAndRadius(Rect.fromLTWH(bx + 3 * s, by + 3 * s, fw, bh - 6 * s), Radius.circular(bh / 2 - 3 * s));
+      final fill = RRect.fromRectAndRadius(Rect.fromLTWH(bx + 3 * s, by + 3 * s, fw, bh - 6 * s), Radius.circular(bh / 2 - 3));
       canvas.drawRRect(fill, Paint()..shader = const LinearGradient(colors: [Color(0xFF7DFFB0), Color(0xFF00C749)]).createShader(fill.outerRect));
     }
-    final pct = TextPainter(
-      text: TextSpan(text: '${(p * 100).round()}%', style: TextStyle(fontSize: 11 * s, fontWeight: FontWeight.w600, color: p > 0.4 ? Colors.white : const Color(0xFF14532D))),
-      textDirection: TextDirection.ltr,
-    )..layout();
+    final pct = TextPainter(text: TextSpan(text: '${(p * 100).round()}%', style: TextStyle(fontSize: 12 * s, fontWeight: FontWeight.w700, color: p > 0.4 ? Colors.white : const Color(0xFF14532D))), textDirection: TextDirection.ltr)..layout();
     pct.paint(canvas, Offset((w - pct.width) / 2, by + (bh - pct.height) / 2));
-
-    final lab = TextPainter(
-      text: TextSpan(text: 'VOSITA STUDIOS', style: TextStyle(fontSize: 11 * s, fontWeight: FontWeight.w500, letterSpacing: 2 * s, color: const Color(0xFF1A1A1A))),
-      textDirection: TextDirection.ltr,
-    )..layout();
+    final lab = TextPainter(text: TextSpan(text: 'VOSITA STUDIOS', style: TextStyle(fontSize: 12 * s, fontWeight: FontWeight.w600, letterSpacing: 2 * s, color: const Color(0xFF1A1A1A))), textDirection: TextDirection.ltr)..layout();
     lab.paint(canvas, Offset((w - lab.width) / 2, h * 0.74));
   }
-
   @override
   bool shouldRepaint(covariant _SplashPainter old) => old.t != t;
 }
@@ -578,25 +482,20 @@ class BootPage extends StatefulWidget {
 
 class _BootPageState extends State<BootPage> {
   bool _ready = false;
-
   @override
   void initState() {
     super.initState();
     _init();
   }
-
   Future<void> _init() async {
     await AppPrefs.load();
     await StatsStore.load();
     await MusicService.start();
     if (mounted) setState(() => _ready = true);
   }
-
   @override
   Widget build(BuildContext context) {
-    if (!_ready) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator(color: accent)));
-    }
+    if (!_ready) return const Scaffold(body: Center(child: CircularProgressIndicator(color: accent)));
     return const HomePage();
   }
 }
@@ -610,19 +509,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   Future<void> _play([int? num]) async {
     final level = num ?? AppPrefs.level;
-    final result = await Navigator.push<int>(
-      context,
-      MaterialPageRoute(builder: (_) => GamePage(number: level)),
-    );
-    if (result != null && mounted) {
-      AppPrefs.completed = max(AppPrefs.completed, result);
-      AppPrefs.level = min(totalLevels, result + 1);
-      AppPrefs.totalWins++;
-      await AppPrefs.save();
-      setState(() {});
-    } else if (mounted) {
-      setState(() {});
-    }
+    await Navigator.push(context, MaterialPageRoute(builder: (_) => GamePage(number: level)));
+    if (mounted) setState(() {});
   }
 
   @override
@@ -632,113 +520,134 @@ class _HomePageState extends State<HomePage> {
     final colors = LevelGenerator.colorCount(AppPrefs.level);
 
     return Scaffold(
-      body: SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [Color(0xFFFFF8E7), Color(0xFFE8F5E9), Color(0xFFE3F2FD), Color(0xFFFCE4EC)],
+          ),
+        ),
+        child: SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(18),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Row(children: [
                   Container(
-                    width: 48, height: 48,
-                    decoration: BoxDecoration(color: accent.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(12)),
-                    child: const Icon(Icons.hub_rounded, color: accent, size: 26),
+                    width: 52, height: 52,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(colors: [accent, accent2]),
+                      borderRadius: BorderRadius.circular(16),
+                      boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.4), blurRadius: 10, offset: const Offset(0, 4))],
+                    ),
+                    child: const Icon(Icons.hub_rounded, color: Colors.white, size: 28),
                   ),
                   const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const Text('NeoLoop', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: textPrimary)),
-                        Text(tr('tagline'), style: const TextStyle(color: textSecondary, fontSize: 12)),
-                      ],
-                    ),
-                  ),
-                  IconButton(
-                    onPressed: () async {
-                      await Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
-                      setState(() {});
-                    },
-                    icon: const Icon(Icons.settings_outlined, color: textSecondary),
-                  ),
-                ],
-              ),
-              if (AppPrefs.canSpinWheel())
-                Padding(
-                  padding: const EdgeInsets.only(top: 10),
-                  child: Material(
-                    color: accentGreen.withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                    child: InkWell(
-                      borderRadius: BorderRadius.circular(10),
-                      onTap: () => _openHintsShop(openWheel: true),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.casino, color: accentGreen, size: 20),
+                  Expanded(child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                    const Text('NeoLoop', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: textPrimary)),
+                    Text(tr('tagline'), style: const TextStyle(color: textSecondary, fontSize: 12)),
+                  ])),
+                  IconButton(onPressed: () async {
+                    await Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsPage()));
+                    setState(() {});
+                  }, icon: const Icon(Icons.settings_rounded, color: accent2)),
+                ]),
+                if (AppPrefs.canSpinWheel())
+                  Padding(
+                    padding: const EdgeInsets.only(top: 10),
+                    child: Material(
+                      color: accent4.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(14),
+                      child: InkWell(
+                        borderRadius: BorderRadius.circular(14),
+                        onTap: () => _openHintsShop(openWheel: true),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          child: Row(children: [
+                            const Icon(Icons.casino, color: accent4, size: 22),
                             const SizedBox(width: 8),
-                            Expanded(child: Text(tr('wheelAvailable'), style: const TextStyle(color: accentGreen, fontWeight: FontWeight.w600, fontSize: 13))),
-                            const Icon(Icons.chevron_right, color: accentGreen, size: 18),
-                          ],
+                            Expanded(child: Text(tr('wheelAvailable'), style: const TextStyle(color: accent4, fontWeight: FontWeight.w800, fontSize: 13))),
+                            const Icon(Icons.chevron_right, color: accent4),
+                          ]),
                         ),
                       ),
                     ),
                   ),
-                ),
-              const Spacer(),
-                            Container(
-                padding: const EdgeInsets.all(22),
-                decoration: BoxDecoration(
-                  color: panel,
-                  borderRadius: BorderRadius.circular(22),
-                  boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.04), blurRadius: 18, offset: const Offset(0, 5))],
-                ),
-                child: Column(
-                  children: [
-                    Icon(Icons.grid_4x4_rounded, size: 52, color: accent.withValues(alpha: 0.9)),
+                const Spacer(),
+                                Container(
+                  padding: const EdgeInsets.all(22),
+                  decoration: BoxDecoration(
+                    color: panel,
+                    borderRadius: BorderRadius.circular(28),
+                    boxShadow: [BoxShadow(color: accent.withValues(alpha: 0.15), blurRadius: 20, offset: const Offset(0, 8))],
+                    border: Border.all(color: accent.withValues(alpha: 0.2), width: 3),
+                  ),
+                  child: Column(children: [
+                    const Text('🎮', style: TextStyle(fontSize: 48)),
+                    const SizedBox(height: 6),
+                    Text('${tr('level')} ${AppPrefs.level}', style: const TextStyle(color: accent, fontWeight: FontWeight.w800, letterSpacing: 1)),
+                    const SizedBox(height: 6),
+                    Text(tr('connect'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800, color: textPrimary)),
                     const SizedBox(height: 8),
-                    Text('${tr('level')} ${AppPrefs.level}', style: const TextStyle(color: accent, letterSpacing: 1.2, fontWeight: FontWeight.w600, fontSize: 13)),
-                    const SizedBox(height: 8),
-                    Text(tr('connect'), textAlign: TextAlign.center, style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w600, color: textPrimary)),
-                    const SizedBox(height: 8),
-                    Text('$w×$h  •  $colors', style: const TextStyle(color: textSecondary)),
+                    Text('$w×$h  •  $colors  🎨', style: const TextStyle(color: textSecondary, fontWeight: FontWeight.w600)),
                     Text('${tr('done')}: ${AppPrefs.completed}/$totalLevels', style: const TextStyle(color: textSecondary)),
-                    Text('${tr('hint')}: ${AppPrefs.hints}', style: const TextStyle(color: textSecondary)),
-                    const SizedBox(height: 18),
+                    Text('💡 ${AppPrefs.hints}', style: const TextStyle(color: textSecondary, fontWeight: FontWeight.w700)),
+                    const SizedBox(height: 16),
                     FilledButton(
                       onPressed: () => _play(),
                       style: FilledButton.styleFrom(
                         backgroundColor: accent,
                         foregroundColor: Colors.white,
-                        minimumSize: const Size.fromHeight(48),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        minimumSize: const Size.fromHeight(52),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+                        elevation: 4,
                       ),
-                      child: Text(tr('play'), style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
+                      child: Text(tr('play'), style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18)),
                     ),
-                  ],
+                  ]),
                 ),
-              ),
-              const SizedBox(height: 12),
-              _MenuBtn(icon: Icons.grid_view_rounded, label: tr('levels'), onTap: () async {
-                final sel = await Navigator.push<int>(context, MaterialPageRoute(builder: (_) => const LevelsPage()));
-                if (sel != null) {
-                  AppPrefs.level = sel;
-                  await AppPrefs.save();
-                  setState(() {});
-                }
-              }),
-              _MenuBtn(icon: Icons.lightbulb_outline, label: tr('hintsShop'), onTap: () => _openHintsShop()),
-              _MenuBtn(icon: Icons.bar_chart_rounded, label: tr('results'), onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const ResultsPage()));
-              }),
-              _MenuBtn(icon: Icons.emoji_events_outlined, label: tr('leaderboard'), onTap: () {
-                Navigator.push(context, MaterialPageRoute(builder: (_) => InfoPage(titleKey: 'leaderboard', icon: Icons.emoji_events_outlined, bodyKey: 'coming')));
-              }),
-              const Spacer(),
-              Text(tr('offline'), textAlign: TextAlign.center, style: TextStyle(color: textSecondary.withValues(alpha: 0.7), fontSize: 11)),
-            ],
+                const SizedBox(height: 12),
+                _kidsBtn(Icons.grid_view_rounded, tr('levels'), accent5, () async {
+                  final sel = await Navigator.push<int>(context, MaterialPageRoute(builder: (_) => const LevelsPage()));
+                  if (sel != null) {
+                    AppPrefs.level = sel;
+                    await AppPrefs.save();
+                    setState(() {});
+                  }
+                }),
+                _kidsBtn(Icons.lightbulb_rounded, tr('hintsShop'), accent4, () => _openHintsShop()),
+                _kidsBtn(Icons.bar_chart_rounded, tr('results'), accent3, () {
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const ResultsPage()));
+                }),
+                const Spacer(),
+                Text(tr('offline'), textAlign: TextAlign.center, style: TextStyle(color: textSecondary.withValues(alpha: 0.7), fontSize: 11)),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _kidsBtn(IconData icon, String label, Color c, VoidCallback onTap) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 8),
+      child: Material(
+        color: c.withValues(alpha: 0.12),
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+            child: Row(children: [
+              Icon(icon, color: c, size: 22),
+              const SizedBox(width: 10),
+              Expanded(child: Text(label, style: TextStyle(color: textPrimary, fontWeight: FontWeight.w700))),
+              Icon(Icons.chevron_right, color: c),
+            ]),
           ),
         ),
       ),
@@ -750,59 +659,34 @@ class _HomePageState extends State<HomePage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: panel,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
       builder: (_) => HintsShopSheet(openWheel: openWheel, onChanged: () => setState(() {})),
-    );
-  }
-}
-
-class _MenuBtn extends StatelessWidget {
-  final IconData icon;
-  final String label;
-  final VoidCallback onTap;
-  const _MenuBtn({required this.icon, required this.label, required this.onTap});
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 7),
-      child: OutlinedButton.icon(
-        onPressed: onTap,
-        icon: Icon(icon, size: 20, color: textSecondary),
-        label: Text(label, style: const TextStyle(color: textPrimary)),
-        style: OutlinedButton.styleFrom(
-          side: BorderSide(color: Colors.black.withValues(alpha: 0.06)),
-          minimumSize: const Size.fromHeight(44),
-          alignment: Alignment.centerLeft,
-          backgroundColor: panel,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(11)),
-        ),
-      ),
     );
   }
 }
 class LevelsPage extends StatelessWidget {
   const LevelsPage({super.key});
-
   @override
   Widget build(BuildContext context) {
+    final cols = [accent, accent2, accent3, accent4, accent5];
     return Scaffold(
-      appBar: AppBar(title: Text(tr('levelSelect'))),
+      appBar: AppBar(title: Text(tr('levelSelect'), style: const TextStyle(fontWeight: FontWeight.w800))),
       body: GridView.builder(
         padding: const EdgeInsets.all(14),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, crossAxisSpacing: 7, mainAxisSpacing: 7),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(crossAxisCount: 5, crossAxisSpacing: 8, mainAxisSpacing: 8),
         itemCount: totalLevels,
         itemBuilder: (_, i) {
           final n = i + 1;
           final unlocked = n <= AppPrefs.completed + 1;
-          return FilledButton(
-            onPressed: unlocked ? () => Navigator.pop(context, n) : null,
-            style: FilledButton.styleFrom(
-              backgroundColor: n == AppPrefs.level ? accent : panel,
-              foregroundColor: n == AppPrefs.level ? Colors.white : textPrimary,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(9)),
+          final c = cols[i % cols.length];
+          return Material(
+            color: unlocked ? c : Colors.grey.shade300,
+            borderRadius: BorderRadius.circular(14),
+            child: InkWell(
+              borderRadius: BorderRadius.circular(14),
+              onTap: unlocked ? () => Navigator.pop(context, n) : null,
+              child: Center(child: Text('$n', style: TextStyle(color: unlocked ? Colors.white : Colors.grey, fontWeight: FontWeight.w900, fontSize: 14))),
             ),
-            child: Text('$n', style: const TextStyle(fontSize: 13)),
           );
         },
       ),
@@ -814,14 +698,29 @@ class HintsShopSheet extends StatefulWidget {
   final bool openWheel;
   final VoidCallback onChanged;
   const HintsShopSheet({super.key, this.openWheel = false, required this.onChanged});
-
   @override
   State<HintsShopSheet> createState() => _HintsShopSheetState();
 }
 
-class _HintsShopSheetState extends State<HintsShopSheet> {
+class _HintsShopSheetState extends State<HintsShopSheet> with SingleTickerProviderStateMixin {
+  late AnimationController _wheelCtrl;
   bool spinning = false;
   int? wheelResult;
+
+  @override
+  void initState() {
+    super.initState();
+    _wheelCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 2800));
+    if (widget.openWheel && AppPrefs.canSpinWheel()) {
+      Future.delayed(const Duration(milliseconds: 400), _spin);
+    }
+  }
+
+  @override
+  void dispose() {
+    _wheelCtrl.dispose();
+    super.dispose();
+  }
 
   Future<void> _watchAd() async {
     final ok = await AdService.showRewarded();
@@ -831,7 +730,7 @@ class _HintsShopSheetState extends State<HintsShopSheet> {
       widget.onChanged();
       if (mounted) {
         setState(() {});
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('+3 ${tr('hint')}')));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('+3 ${tr('hint')} 💡'), backgroundColor: accent3));
       }
     }
   }
@@ -839,131 +738,130 @@ class _HintsShopSheetState extends State<HintsShopSheet> {
   Future<void> _spin() async {
     if (!AppPrefs.canSpinWheel() || spinning) return;
     setState(() { spinning = true; wheelResult = null; });
-    await Future.delayed(const Duration(milliseconds: 1400));
-    final r = Random().nextInt(16); // 0..15
-    AppPrefs.hints += r;
+    final result = Random().nextInt(16);
+    final turns = 4 + Random().nextDouble() * 2;
+    final end = turns + result / 16.0;
+    await _wheelCtrl.animateTo(end, duration: const Duration(milliseconds: 2800), curve: Curves.easeOutCubic);
+    AppPrefs.hints += result;
     AppPrefs.lastWheelDay = AppPrefs.todayKey();
     await AppPrefs.save();
     widget.onChanged();
-    if (mounted) setState(() { spinning = false; wheelResult = r; });
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    if (widget.openWheel && AppPrefs.canSpinWheel()) {
-      Future.delayed(const Duration(milliseconds: 300), _spin);
-    }
+    if (mounted) setState(() { spinning = false; wheelResult = result; });
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 28),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(height: 14),
-          Text(tr('hintsShop'), style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: textPrimary)),
-          Text('${tr('hint')}: ${AppPrefs.hints}', style: const TextStyle(color: textSecondary)),
-          const SizedBox(height: 16),
-          _shopTile(Icons.storefront_outlined, tr('sellHints'), tr('coming'), null),
-          _shopTile(Icons.shopping_bag_outlined, tr('buyHints'), tr('coming'), null),
-          _shopTile(Icons.ondemand_video, tr('adHints'), null, _watchAd),
-          const SizedBox(height: 8),
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: accentGreen.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(14),
-              border: Border.all(color: accentGreen.withValues(alpha: 0.25)),
-            ),
-            child: Column(
-              children: [
-                Text(tr('wheel'), style: const TextStyle(fontWeight: FontWeight.w700, color: textPrimary)),
-                const SizedBox(height: 6),
-                if (wheelResult != null)
-                  Text('+$wheelResult', style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: accentGreen))
-                else
-                  Text(AppPrefs.canSpinWheel() ? '0 – 15' : tr('wheelDone'), style: const TextStyle(color: textSecondary)),
-                const SizedBox(height: 10),
-                FilledButton(
-                  onPressed: AppPrefs.canSpinWheel() && !spinning ? _spin : null,
-                  style: FilledButton.styleFrom(backgroundColor: accentGreen, foregroundColor: Colors.white),
-                  child: Text(spinning ? '...' : tr('spin')),
-                ),
-              ],
-            ),
+      padding: const EdgeInsets.fromLTRB(20, 14, 20, 28),
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Container(width: 40, height: 5, decoration: BoxDecoration(color: Colors.black26, borderRadius: BorderRadius.circular(3))),
+        const SizedBox(height: 12),
+        Text('🎁 ${tr('hintsShop')}', style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w900, color: textPrimary)),
+        Text('💡 ${AppPrefs.hints}', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: accent4)),
+        const SizedBox(height: 12),
+        ListTile(leading: const Icon(Icons.storefront, color: accent), title: Text(tr('sellHints')), subtitle: Text(tr('coming')), onTap: null),
+        ListTile(leading: const Icon(Icons.shopping_bag, color: accent2), title: Text(tr('buyHints')), subtitle: Text(tr('coming')), onTap: null),
+        ListTile(leading: const Icon(Icons.ondemand_video, color: accent5), title: Text(tr('adHints')), onTap: _watchAd),
+        const SizedBox(height: 8),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(colors: [accent4.withValues(alpha: 0.15), accent.withValues(alpha: 0.12)]),
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: accent4.withValues(alpha: 0.35), width: 2),
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _shopTile(IconData icon, String title, String? subtitle, VoidCallback? onTap) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: Icon(icon, color: accent),
-      title: Text(title),
-      subtitle: subtitle != null ? Text(subtitle, style: const TextStyle(fontSize: 12)) : null,
-      trailing: onTap != null ? const Icon(Icons.chevron_right) : null,
-      onTap: onTap,
+          child: Column(children: [
+            Text('🎡 ${tr('wheel')}', style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 16)),
+            const SizedBox(height: 12),
+            SizedBox(
+              width: 180, height: 180,
+              child: AnimatedBuilder(
+                animation: _wheelCtrl,
+                builder: (_, __) => Transform.rotate(
+                  angle: _wheelCtrl.value * 2 * pi,
+                  child: CustomPaint(painter: _WheelPainter()),
+                ),
+              ),
+            ),
+            const SizedBox(height: 8),
+            if (wheelResult != null)
+              Text('+$wheelResult 💡', style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900, color: accent3))
+            else
+              Text(AppPrefs.canSpinWheel() ? '0 – 15' : tr('wheelDone'), style: const TextStyle(color: textSecondary, fontWeight: FontWeight.w600)),
+            const SizedBox(height: 10),
+            FilledButton(
+              onPressed: AppPrefs.canSpinWheel() && !spinning ? _spin : null,
+              style: FilledButton.styleFrom(backgroundColor: accent4, foregroundColor: Colors.white, minimumSize: const Size(140, 44), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+              child: Text(spinning ? '...' : tr('spin'), style: const TextStyle(fontWeight: FontWeight.w900)),
+            ),
+          ]),
+        ),
+      ]),
     );
   }
 }
+
+class _WheelPainter extends CustomPainter {
+  @override
+  void paint(Canvas canvas, Size size) {
+    final c = Offset(size.width / 2, size.height / 2);
+    final r = size.width / 2;
+    const cols = [Color(0xFFFF5252), Color(0xFFFF9100), Color(0xFFFFD600), Color(0xFF69F0AE), Color(0xFF40C4FF), Color(0xFF7C4DFF), Color(0xFFFF4081), Color(0xFF18FFFF)];
+    for (int i = 0; i < 16; i++) {
+      final a0 = i * pi / 8 - pi / 2;
+      final a1 = (i + 1) * pi / 8 - pi / 2;
+      final path = Path()
+        ..moveTo(c.dx, c.dy)
+        ..arcTo(Rect.fromCircle(center: c, radius: r), a0, a1 - a0, false)
+        ..close();
+      canvas.drawPath(path, Paint()..color = cols[i % cols.length]);
+      final mid = a0 + (a1 - a0) / 2;
+      final tp = TextPainter(text: TextSpan(text: '$i', style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w900)), textDirection: TextDirection.ltr)..layout();
+      final ox = c.dx + cos(mid) * r * 0.7 - tp.width / 2;
+      final oy = c.dy + sin(mid) * r * 0.7 - tp.height / 2;
+      tp.paint(canvas, Offset(ox, oy));
+    }
+    canvas.drawCircle(c, 12, Paint()..color = Colors.white);
+    canvas.drawCircle(c, 8, Paint()..color = accent);
+  }
+  @override
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
 class ResultsPage extends StatelessWidget {
   const ResultsPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     final list = StatsStore.history;
     return Scaffold(
-      appBar: AppBar(title: Text(tr('results'))),
+      appBar: AppBar(title: Text(tr('results'), style: const TextStyle(fontWeight: FontWeight.w800))),
       body: list.isEmpty
-          ? Center(child: Text(tr('coming'), style: const TextStyle(color: textSecondary)))
-          : ListView(
-              padding: const EdgeInsets.all(16),
-              children: [
-                _card('Всего уровней', '${AppPrefs.completed}'),
-                _card('Побед', '${AppPrefs.totalWins}'),
-                _card('Подсказки сейчас', '${AppPrefs.hints}'),
-                const SizedBox(height: 12),
-                const Text('По уровням', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 16)),
-                const SizedBox(height: 8),
-                ...list.map((s) => Card(
-                      margin: const EdgeInsets.only(bottom: 8),
-                      child: ListTile(
-                        title: Text('${tr('level')} ${s.level}'),
-                        subtitle: Text(
-                          '${tr('timeSpent')}: ${s.seconds} ${tr('sec')}\n'
-                          '${tr('hintsUsed')}: ${s.hintsUsed}\n'
-                          '${tr('decisionSpeed')}: ${s.avgDecisionMs.toStringAsFixed(0)} ${tr('ms')}',
-                        ),
-                        isThreeLine: true,
-                      ),
-                    )),
-              ],
-            ),
+          ? Center(child: Text('⭐ ${tr('coming')}', style: const TextStyle(color: textSecondary, fontSize: 16)))
+          : ListView(padding: const EdgeInsets.all(16), children: [
+              _card('🏆 ${tr('done')}', '${AppPrefs.completed}'),
+              _card('🎯 ${tr('won')}', '${AppPrefs.totalWins}'),
+              _card('💡 ${tr('hint')}', '${AppPrefs.hints}'),
+              const SizedBox(height: 10),
+              ...list.map((s) => Card(
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    child: ListTile(
+                      title: Text('${tr('level')} ${s.level}', style: const TextStyle(fontWeight: FontWeight.w800)),
+                      subtitle: Text('${tr('timeSpent')}: ${s.seconds} ${tr('sec')}\n${tr('hintsUsed')}: ${s.hintsUsed}\n${tr('decisionSpeed')}: ${s.avgDecisionMs.toStringAsFixed(0)} ${tr('ms')}'),
+                      isThreeLine: true,
+                    ),
+                  )),
+            ]),
     );
   }
-
-  Widget _card(String title, String value) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 8),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(color: panel, borderRadius: BorderRadius.circular(12), boxShadow: [
-        BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 8, offset: const Offset(0, 2)),
-      ]),
-      child: Row(
-        children: [
-          Expanded(child: Text(title, style: const TextStyle(color: textSecondary))),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18, color: textPrimary)),
-        ],
-      ),
-    );
-  }
+  Widget _card(String t, String v) => Container(
+        margin: const EdgeInsets.only(bottom: 8),
+        padding: const EdgeInsets.all(14),
+        decoration: BoxDecoration(color: panel, borderRadius: BorderRadius.circular(16), border: Border.all(color: accent.withValues(alpha: 0.2))),
+        child: Row(children: [
+          Expanded(child: Text(t, style: const TextStyle(fontWeight: FontWeight.w700))),
+          Text(v, style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 18, color: accent)),
+        ]),
+      );
 }
 
 class SettingsPage extends StatefulWidget {
@@ -976,129 +874,82 @@ class _SettingsPageState extends State<SettingsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(tr('settings'))),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          ListTile(
-            title: Text(tr('language')),
-            leading: const Icon(Icons.language, color: accent),
-            trailing: DropdownButton<String>(
-              value: AppPrefs.language,
-              underline: const SizedBox(),
-              items: const [
-                DropdownMenuItem(value: 'ru', child: Text('🇷🇺 RU')),
-                DropdownMenuItem(value: 'uz', child: Text('🇺🇿 UZ')),
-                DropdownMenuItem(value: 'en', child: Text('🇬🇧 EN')),
-                DropdownMenuItem(value: 'uk', child: Text('🇺🇦 UK')),
-                DropdownMenuItem(value: 'kk', child: Text('🇰🇿 KK')),
-                DropdownMenuItem(value: 'ja', child: Text('🇯🇵 JA')),
-                DropdownMenuItem(value: 'de', child: Text('🇩🇪 DE')),
-                DropdownMenuItem(value: 'fr', child: Text('🇫🇷 FR')),
-                DropdownMenuItem(value: 'es', child: Text('🇪🇸 ES')),
-                DropdownMenuItem(value: 'zh', child: Text('🇨🇳 ZH')),
-              ],
-              onChanged: (v) async {
-                if (v != null) {
-                  AppPrefs.language = v;
-                  await AppPrefs.save();
-                  setState(() {});
-                }
-              },
-            ),
-          ),
-          SwitchListTile(
-            title: Text(tr('sound')),
-            value: AppPrefs.sound,
-            activeThumbColor: accent,
+      appBar: AppBar(title: Text(tr('settings'), style: const TextStyle(fontWeight: FontWeight.w800))),
+      body: ListView(padding: const EdgeInsets.all(16), children: [
+        ListTile(
+          title: Text(tr('language'), style: const TextStyle(fontWeight: FontWeight.w700)),
+          leading: const Icon(Icons.language, color: accent2),
+          trailing: DropdownButton<String>(
+            value: AppPrefs.language,
+            underline: const SizedBox(),
+            items: const [
+              DropdownMenuItem(value: 'ru', child: Text('🇷🇺 RU')),
+              DropdownMenuItem(value: 'uz', child: Text('🇺🇿 UZ')),
+              DropdownMenuItem(value: 'en', child: Text('🇬🇧 EN')),
+              DropdownMenuItem(value: 'uk', child: Text('🇺🇦 UK')),
+              DropdownMenuItem(value: 'kk', child: Text('🇰🇿 KK')),
+              DropdownMenuItem(value: 'ja', child: Text('🇯🇵 JA')),
+              DropdownMenuItem(value: 'de', child: Text('🇩🇪 DE')),
+              DropdownMenuItem(value: 'fr', child: Text('🇫🇷 FR')),
+              DropdownMenuItem(value: 'es', child: Text('🇪🇸 ES')),
+              DropdownMenuItem(value: 'zh', child: Text('🇨🇳 ZH')),
+            ],
             onChanged: (v) async {
-              setState(() => AppPrefs.sound = v);
-              await AppPrefs.save();
+              if (v != null) {
+                AppPrefs.language = v;
+                await AppPrefs.save();
+                setState(() {});
+              }
             },
           ),
-          SwitchListTile(
-            title: Text(tr('effects')),
-            value: AppPrefs.effects,
-            activeThumbColor: accent,
-            onChanged: (v) async {
-              setState(() => AppPrefs.effects = v);
-              await AppPrefs.save();
-            },
-          ),
-          SwitchListTile(
-            title: Text(tr('music')),
-            value: AppPrefs.music,
-            activeThumbColor: accent,
-            onChanged: (v) async {
-              await MusicService.setEnabled(v);
-              setState(() {});
-            },
-          ),
-          const Divider(),
-          ListTile(
-            leading: const Icon(Icons.info_outline, color: accent),
-            title: Text(tr('about')),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutPage())),
-          ),
-        ],
-      ),
+        ),
+        SwitchListTile(title: Text(tr('sound')), value: AppPrefs.sound, activeThumbColor: accent, onChanged: (v) async {
+          setState(() => AppPrefs.sound = v);
+          await AppPrefs.save();
+        }),
+        SwitchListTile(title: Text(tr('effects')), value: AppPrefs.effects, activeThumbColor: accent2, onChanged: (v) async {
+          setState(() => AppPrefs.effects = v);
+          await AppPrefs.save();
+        }),
+        SwitchListTile(title: Text(tr('music')), value: AppPrefs.music, activeThumbColor: accent3, onChanged: (v) async {
+          await MusicService.setEnabled(v);
+          setState(() {});
+        }),
+        const Divider(),
+        ListTile(
+          leading: const Icon(Icons.info_outline, color: accent5),
+          title: Text(tr('about'), style: const TextStyle(fontWeight: FontWeight.w700)),
+          trailing: const Icon(Icons.chevron_right),
+          onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutPage())),
+        ),
+      ]),
     );
   }
 }
+
 class AboutPage extends StatelessWidget {
   const AboutPage({super.key});
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text(tr('about'))),
-      body: ListView(
-        padding: const EdgeInsets.all(20),
-        children: [
-          Center(
-            child: Container(
-              width: 72, height: 72,
-              decoration: BoxDecoration(color: accent.withValues(alpha: 0.12), borderRadius: BorderRadius.circular(18)),
-              child: const Icon(Icons.hub_rounded, size: 40, color: accent),
-            ),
-          ),
-          const SizedBox(height: 16),
-          const Center(child: Text('NeoLoop', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: textPrimary))),
-          const SizedBox(height: 20),
-          Text(tr('description'), style: const TextStyle(height: 1.5, color: textPrimary)),
-          const SizedBox(height: 20),
-          ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.person_outline, color: accent), title: Text(tr('developer')), subtitle: const Text('VOSITA STUDIOS')),
-          ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.public, color: accent), title: Text(tr('country')), subtitle: const Text('Uzbekistan')),
-        ],
-      ),
+      appBar: AppBar(title: Text(tr('about'), style: const TextStyle(fontWeight: FontWeight.w800))),
+      body: ListView(padding: const EdgeInsets.all(20), children: [
+        Center(child: Container(
+          width: 80, height: 80,
+          decoration: BoxDecoration(gradient: const LinearGradient(colors: [accent, accent2]), borderRadius: BorderRadius.circular(24)),
+          child: const Icon(Icons.hub_rounded, size: 44, color: Colors.white),
+        )),
+        const SizedBox(height: 14),
+        const Center(child: Text('NeoLoop', style: TextStyle(fontSize: 26, fontWeight: FontWeight.w900))),
+        const SizedBox(height: 16),
+        Text(tr('description'), style: const TextStyle(height: 1.5, fontSize: 15, color: textPrimary)),
+        const SizedBox(height: 20),
+        ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.apartment, color: accent), title: Text(tr('developer')), subtitle: const Text('VOSITA STUDIOS')),
+        ListTile(contentPadding: EdgeInsets.zero, leading: const Icon(Icons.public, color: accent2), title: Text(tr('country')), subtitle: const Text('Uzbekistan')),
+      ]),
     );
   }
 }
-
-class InfoPage extends StatelessWidget {
-  final String titleKey, bodyKey;
-  final IconData icon;
-  const InfoPage({super.key, required this.titleKey, required this.icon, required this.bodyKey});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: Text(tr(titleKey))),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(28),
-          child: Column(mainAxisSize: MainAxisSize.min, children: [
-            Icon(icon, size: 56, color: accent.withValues(alpha: 0.7)),
-            const SizedBox(height: 14),
-            Text(tr(bodyKey), textAlign: TextAlign.center, style: const TextStyle(color: textSecondary, fontSize: 15)),
-          ]),
-        ),
-      ),
-    );
-  }
-}
-
 class GamePage extends StatefulWidget {
   final int number;
   const GamePage({super.key, required this.number});
@@ -1117,12 +968,25 @@ class _GamePageState extends State<GamePage> {
   int hintsLeft = 0;
   int hintsUsed = 0;
   bool won = false;
+  bool paused = false;
   DateTime? startedAt;
+  Duration pausedTotal = Duration.zero;
+  DateTime? pauseStarted;
   final List<int> decisionTimes = [];
   DateTime? pathStartAt;
 
   int get n => data.width * data.height;
   Map<int, int> get endpoints => data.endpoints;
+
+  int get elapsedSeconds {
+    if (startedAt == null) return 0;
+    var total = DateTime.now().difference(startedAt!);
+    total -= pausedTotal;
+    if (paused && pauseStarted != null) {
+      total -= DateTime.now().difference(pauseStarted!);
+    }
+    return total.inSeconds.clamp(0, 99999);
+  }
 
   @override
   void initState() {
@@ -1141,25 +1005,73 @@ class _GamePageState extends State<GamePage> {
     hintsLeft = min(3, AppPrefs.hints);
     hintsUsed = 0;
     won = false;
+    paused = false;
     startedAt = DateTime.now();
+    pausedTotal = Duration.zero;
+    pauseStarted = null;
     decisionTimes.clear();
     pathStartAt = null;
     setState(() {});
   }
+
+  void _pause() {
+    if (paused || won) return;
+    paused = true;
+    pauseStarted = DateTime.now();
+    setState(() {});
+  }
+
+  void _resume() {
+    if (!paused) return;
+    if (pauseStarted != null) {
+      pausedTotal += DateTime.now().difference(pauseStarted!);
+    }
+    pauseStarted = null;
+    paused = false;
+    setState(() {});
+  }
+
+  void _showHowTo() {
+    _pause();
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => AlertDialog(
+        backgroundColor: panel,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text('📖 ${tr('howTo')}', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w900)),
+        content: SingleChildScrollView(child: Text(tr('howToBody'), style: const TextStyle(height: 1.5, fontSize: 15))),
+        actions: [
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(context);
+              _resume();
+            },
+            style: FilledButton.styleFrom(backgroundColor: accent, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+            child: const Text('OK', style: TextStyle(fontWeight: FontWeight.w800)),
+          ),
+        ],
+      ),
+    );
+  }
+
   void _rebuild() {
     owner = List<int?>.filled(n, null);
     for (final e in paths.entries) {
-      for (final c in e.value) owner[c] = e.key;
+      for (final c in e.value) {
+        owner[c] = e.key;
+      }
     }
   }
-
-  void begin(int cell) {
-    if (won) return;
+    void begin(int cell) {
+    if (won || paused) return;
     final color = endpoints[cell];
     if (color == null) return;
     pathStartAt = DateTime.now();
     if (paths.containsKey(color)) {
-      for (final c in paths[color]!) owner[c] = null;
+      for (final c in paths[color]!) {
+        owner[c] = null;
+      }
       paths.remove(color);
     }
     active = color;
@@ -1169,7 +1081,7 @@ class _GamePageState extends State<GamePage> {
   }
 
   void moveTo(int cell) {
-    if (active == null || draft.isEmpty || won) return;
+    if (active == null || draft.isEmpty || won || paused) return;
     final last = draft.last;
     if (cell == last) return;
     final w = data.width;
@@ -1179,7 +1091,9 @@ class _GamePageState extends State<GamePage> {
 
     final idx = draft.indexOf(cell);
     if (idx >= 0) {
-      for (final c in draft.sublist(idx + 1)) owner[c] = null;
+      for (final c in draft.sublist(idx + 1)) {
+        owner[c] = null;
+      }
       draft = draft.sublist(0, idx + 1);
       setState(() {});
       return;
@@ -1213,7 +1127,9 @@ class _GamePageState extends State<GamePage> {
   void endDrag() {
     if (active == null) return;
     if (draft.length < 2 || endpoints[draft.last] != active) {
-      for (final c in draft) owner[c] = null;
+      for (final c in draft) {
+        owner[c] = null;
+      }
     }
     active = null;
     draft = [];
@@ -1225,18 +1141,10 @@ class _GamePageState extends State<GamePage> {
     if (paths.length != data.colors) return;
     if (owner.any((o) => o == null)) return;
     won = true;
-    final seconds = DateTime.now().difference(startedAt!).inSeconds;
-    final avgDecision = decisionTimes.isEmpty
-        ? 0.0
-        : decisionTimes.reduce((a, b) => a + b) / decisionTimes.length;
+    final seconds = elapsedSeconds;
+    final avgDecision = decisionTimes.isEmpty ? 0.0 : decisionTimes.reduce((a, b) => a + b) / decisionTimes.length;
 
-    StatsStore.add(LevelStats(
-      level: widget.number,
-      seconds: seconds,
-      hintsUsed: hintsUsed,
-      avgDecisionMs: avgDecision,
-    ));
-
+    StatsStore.add(LevelStats(level: widget.number, seconds: seconds, hintsUsed: hintsUsed, avgDecisionMs: avgDecision));
     AppPrefs.completed = max(AppPrefs.completed, widget.number);
     AppPrefs.totalWins++;
     if (widget.number >= AppPrefs.level) {
@@ -1255,10 +1163,7 @@ class _GamePageState extends State<GamePage> {
         onNext: () {
           Navigator.pop(context);
           if (widget.number < totalLevels) {
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (_) => GamePage(number: widget.number + 1)),
-            );
+            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => GamePage(number: widget.number + 1)));
           } else {
             Navigator.pop(context);
           }
@@ -1270,7 +1175,9 @@ class _GamePageState extends State<GamePage> {
       ),
     );
   }
+
   Future<void> useHint() async {
+    if (paused) return;
     if (hintsLeft <= 0 || AppPrefs.hints <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('noHints'))));
       return;
@@ -1284,7 +1191,7 @@ class _GamePageState extends State<GamePage> {
         await AppPrefs.save();
         _rebuild();
         setState(() {});
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('hintShown'))));
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(tr('hintShown')), backgroundColor: accent3));
         _checkWin();
         return;
       }
@@ -1297,130 +1204,115 @@ class _GamePageState extends State<GamePage> {
     if (x < 0 || y < 0 || x >= data.width || y >= data.height) return null;
     return y * data.width + x;
   }
-
-  @override
+    @override
   Widget build(BuildContext context) {
-    final glass = glassColorForLevel(widget.number);
+    final boardColor = boardColorForLevel(widget.number);
     final connected = paths.length;
     final filled = owner.where((o) => o != null).length;
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${tr('level')} ${widget.number}'),
+        title: Text('${tr('level')} ${widget.number}', style: const TextStyle(fontWeight: FontWeight.w900)),
         actions: [
-          TextButton.icon(
-            onPressed: useHint,
-            icon: const Icon(Icons.lightbulb_outline, size: 18),
-            label: Text('$hintsLeft'),
-          ),
+          IconButton(onPressed: _showHowTo, icon: const Icon(Icons.help_outline_rounded), tooltip: tr('howTo')),
+          TextButton.icon(onPressed: useHint, icon: const Icon(Icons.lightbulb, size: 18), label: Text('$hintsLeft')),
         ],
       ),
-      body: Column(
-        children: [
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(colors: [Color(0xFFFFF8E7), Color(0xFFE8F5E9), Color(0xFFE3F2FD)]),
+        ),
+        child: Column(children: [
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-            child: Row(
-              children: [
-                Expanded(child: Text('${tr('connected')}: $connected/${data.colors}', style: const TextStyle(color: textSecondary, fontSize: 13))),
-                Expanded(child: Text('${tr('filled')}: $filled/$n', textAlign: TextAlign.center, style: const TextStyle(color: textSecondary, fontSize: 13))),
-                Expanded(child: Text('${tr('hint')}: ${AppPrefs.hints}', textAlign: TextAlign.right, style: const TextStyle(color: textSecondary, fontSize: 13))),
-              ],
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+            child: Row(children: [
+              Expanded(child: Text('${tr('connected')}: $connected/${data.colors}', style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12))),
+              Expanded(child: Text('${tr('filled')}: $filled/$n', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12))),
+              Expanded(child: Text('⏱ $elapsedSeconds ${tr('sec')}', textAlign: TextAlign.right, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12))),
+            ]),
           ),
           Expanded(
             child: Padding(
               padding: const EdgeInsets.all(12),
               child: AspectRatio(
                 aspectRatio: data.width / data.height,
-                child: LayoutBuilder(
-                  builder: (context, box) {
-                    final cw = box.maxWidth / data.width;
-                    final ch = box.maxHeight / data.height;
-                    return GestureDetector(
-                      onPanStart: (d) {
-                        final c = _cellAt(d.localPosition, cw, ch);
-                        if (c != null) begin(c);
-                      },
-                      onPanUpdate: (d) {
-                        final c = _cellAt(d.localPosition, cw, ch);
-                        if (c != null) moveTo(c);
-                      },
-                      onPanEnd: (_) => endDrag(),
-                      onPanCancel: endDrag,
-                      child: CustomPaint(
-                        painter: GridPainter(
-                          width: data.width,
-                          height: data.height,
-                          endpoints: endpoints,
-                          paths: paths,
-                          draft: draft,
-                          active: active,
-                          owner: owner,
-                          colors: colors,
-                          glassColor: glass,
-                        ),
-                        child: const SizedBox.expand(),
+                child: LayoutBuilder(builder: (context, box) {
+                  final cw = box.maxWidth / data.width;
+                  final ch = box.maxHeight / data.height;
+                  return GestureDetector(
+                    onPanStart: (d) {
+                      if (paused) return;
+                      final c = _cellAt(d.localPosition, cw, ch);
+                      if (c != null) begin(c);
+                    },
+                    onPanUpdate: (d) {
+                      if (paused) return;
+                      final c = _cellAt(d.localPosition, cw, ch);
+                      if (c != null) moveTo(c);
+                    },
+                    onPanEnd: (_) => endDrag(),
+                    onPanCancel: endDrag,
+                    child: CustomPaint(
+                      painter: GridPainter(
+                        width: data.width,
+                        height: data.height,
+                        endpoints: endpoints,
+                        paths: paths,
+                        draft: draft,
+                        active: active,
+                        owner: owner,
+                        colors: colors,
+                        boardColor: boardColor,
                       ),
-                    );
-                  },
-                ),
+                      child: const SizedBox.expand(),
+                    ),
+                  );
+                }),
               ),
             ),
           ),
-                    Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-            child: Row(
-              children: [
-                Expanded(
-                  child: OutlinedButton.icon(
-                    onPressed: _load,
-                    icon: const Icon(Icons.refresh),
-                    label: Text(tr('reset')),
-                    style: OutlinedButton.styleFrom(
-                      foregroundColor: textPrimary,
-                      side: BorderSide(color: Colors.black.withValues(alpha: 0.08)),
-                      minimumSize: const Size.fromHeight(46),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 14),
+            child: Row(children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _load,
+                  icon: const Icon(Icons.refresh),
+                  label: Text(tr('reset')),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: textPrimary,
+                    minimumSize: const Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    side: BorderSide(color: accent2.withValues(alpha: 0.4), width: 2),
                   ),
                 ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: FilledButton.icon(
-                    onPressed: useHint,
-                    icon: const Icon(Icons.lightbulb, size: 18),
-                    label: Text(tr('hint')),
-                    style: FilledButton.styleFrom(
-                      backgroundColor: accent,
-                      foregroundColor: Colors.white,
-                      minimumSize: const Size.fromHeight(46),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: FilledButton.icon(
+                  onPressed: useHint,
+                  icon: const Icon(Icons.lightbulb, size: 18),
+                  label: Text(tr('hint')),
+                  style: FilledButton.styleFrom(
+                    backgroundColor: accent4,
+                    foregroundColor: Colors.white,
+                    minimumSize: const Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                   ),
                 ),
-              ],
-            ),
+              ),
+            ]),
           ),
-        ],
+        ]),
       ),
     );
   }
 }
-
 class _WinDialog extends StatefulWidget {
   final int level, seconds, hintsUsed;
   final double avgDecisionMs;
   final VoidCallback onNext, onMenu;
-
-  const _WinDialog({
-    required this.level,
-    required this.seconds,
-    required this.hintsUsed,
-    required this.avgDecisionMs,
-    required this.onNext,
-    required this.onMenu,
-  });
-
+  const _WinDialog({required this.level, required this.seconds, required this.hintsUsed, required this.avgDecisionMs, required this.onNext, required this.onMenu});
   @override
   State<_WinDialog> createState() => _WinDialogState();
 }
@@ -1428,7 +1320,6 @@ class _WinDialog extends StatefulWidget {
 class _WinDialogState extends State<_WinDialog> {
   int left = 5;
   Timer? timer;
-
   @override
   void initState() {
     super.initState();
@@ -1437,11 +1328,10 @@ class _WinDialogState extends State<_WinDialog> {
       setState(() => left--);
       if (left <= 0) {
         t.cancel();
-        widget.onMenu(); // автоматически «В меню»
+        widget.onMenu();
       }
     });
   }
-
   @override
   void dispose() {
     timer?.cancel();
@@ -1452,64 +1342,51 @@ class _WinDialogState extends State<_WinDialog> {
   Widget build(BuildContext context) {
     return AlertDialog(
       backgroundColor: panel,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
-      title: Text(tr('won'), textAlign: TextAlign.center),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('${tr('level')} ${widget.level}', style: const TextStyle(color: textSecondary)),
-          const SizedBox(height: 12),
-          _stat(tr('timeSpent'), '${widget.seconds} ${tr('sec')}'),
-          _stat(tr('hintsUsed'), '${widget.hintsUsed}'),
-          _stat(tr('decisionSpeed'), '${widget.avgDecisionMs.toStringAsFixed(0)} ${tr('ms')}'),
-          const SizedBox(height: 10),
-          Text('${tr('timerHint')} $left', style: const TextStyle(color: textSecondary, fontSize: 12)),
-        ],
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      title: Text('🎉 ${tr('won')}', textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.w900)),
+      content: Column(mainAxisSize: MainAxisSize.min, children: [
+        Text('${tr('level')} ${widget.level}', style: const TextStyle(color: textSecondary, fontWeight: FontWeight.w600)),
+        const SizedBox(height: 12),
+        _stat('⏱ ${tr('timeSpent')}', '${widget.seconds} ${tr('sec')}'),
+        _stat('💡 ${tr('hintsUsed')}', '${widget.hintsUsed}'),
+        _stat('⚡ ${tr('decisionSpeed')}', '${widget.avgDecisionMs.toStringAsFixed(0)} ${tr('ms')}'),
+        const SizedBox(height: 10),
+        Text('${tr('timerHint')} $left', style: const TextStyle(color: textSecondary, fontSize: 12)),
+      ]),
       actionsAlignment: MainAxisAlignment.center,
       actions: [
-        Column(
-          children: [
-            SizedBox(
-              width: double.infinity,
-              child: FilledButton(
-                onPressed: () {
-                  timer?.cancel();
-                  widget.onNext();
-                },
-                style: FilledButton.styleFrom(backgroundColor: accent, foregroundColor: Colors.white),
-                child: Text(tr('next')),
-              ),
+        Column(children: [
+          SizedBox(
+            width: double.infinity,
+            child: FilledButton(
+              onPressed: () { timer?.cancel(); widget.onNext(); },
+              style: FilledButton.styleFrom(backgroundColor: accent3, foregroundColor: Colors.white, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+              child: Text(tr('next'), style: const TextStyle(fontWeight: FontWeight.w900)),
             ),
-            const SizedBox(height: 8),
-            SizedBox(
-              width: double.infinity,
-              child: OutlinedButton(
-                onPressed: () {
-                  timer?.cancel();
-                  widget.onMenu();
-                },
-                child: Text(tr('toMenu')),
-              ),
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: OutlinedButton(
+              onPressed: () { timer?.cancel(); widget.onMenu(); },
+              style: OutlinedButton.styleFrom(shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14))),
+              child: Text(tr('toMenu'), style: const TextStyle(fontWeight: FontWeight.w700)),
             ),
-          ],
-        ),
+          ),
+        ]),
       ],
     );
   }
 
-  Widget _stat(String k, String v) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 3),
-      child: Row(
-        children: [
+  Widget _stat(String k, String v) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 3),
+        child: Row(children: [
           Expanded(child: Text(k, style: const TextStyle(color: textSecondary))),
-          Text(v, style: const TextStyle(fontWeight: FontWeight.w600)),
-        ],
-      ),
-    );
-  }
+          Text(v, style: const TextStyle(fontWeight: FontWeight.w800)),
+        ]),
+      );
 }
+
 class GridPainter extends CustomPainter {
   final int width, height;
   final Map<int, int> endpoints;
@@ -1518,18 +1395,12 @@ class GridPainter extends CustomPainter {
   final int? active;
   final List<int?> owner;
   final List<Color> colors;
-  final Color glassColor;
+  final Color boardColor;
 
   GridPainter({
-    required this.width,
-    required this.height,
-    required this.endpoints,
-    required this.paths,
-    required this.draft,
-    required this.active,
-    required this.owner,
-    required this.colors,
-    required this.glassColor,
+    required this.width, required this.height, required this.endpoints,
+    required this.paths, required this.draft, required this.active,
+    required this.owner, required this.colors, required this.boardColor,
   });
 
   @override
@@ -1538,29 +1409,21 @@ class GridPainter extends CustomPainter {
     final ch = size.height / height;
     final cell = min(cw, ch);
 
-    // Молочно-зелёное стекло
-    final bgPaint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          glassColor,
-          Color.lerp(glassColor, const Color(0xFFD4E8D8), 0.35)!,
-        ],
-      ).createShader(Offset.zero & size);
     canvas.drawRRect(
-      RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(12)),
-      bgPaint,
+      RRect.fromRectAndRadius(Offset.zero & size, const Radius.circular(16)),
+      Paint()..color = boardColor,
     );
 
-    // Сетка
     final grid = Paint()
-      ..color = Colors.black.withValues(alpha: 0.06)
+      ..color = Colors.white.withValues(alpha: 0.55)
       ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
+      ..strokeWidth = 1.5;
     for (int y = 0; y < height; y++) {
       for (int x = 0; x < width; x++) {
-        canvas.drawRect(Rect.fromLTWH(x * cw, y * ch, cw, ch), grid);
+        canvas.drawRRect(
+          RRect.fromRectAndRadius(Rect.fromLTWH(x * cw + 1, y * ch + 1, cw - 2, ch - 2), const Radius.circular(4)),
+          grid,
+        );
       }
     }
 
@@ -1569,15 +1432,15 @@ class GridPainter extends CustomPainter {
       final paint = Paint()
         ..color = color
         ..style = PaintingStyle.stroke
-        ..strokeWidth = cell * 0.55
+        ..strokeWidth = cell * 0.52
         ..strokeCap = StrokeCap.round
         ..strokeJoin = StrokeJoin.round;
       final glow = Paint()
-        ..color = color.withValues(alpha: 0.2)
+        ..color = color.withValues(alpha: 0.28)
         ..style = PaintingStyle.stroke
-        ..strokeWidth = cell * 0.85
+        ..strokeWidth = cell * 0.8
         ..strokeCap = StrokeCap.round
-        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
       final path = Path();
       Offset center(int c) => Offset((c % width + 0.5) * cw, (c ~/ width + 0.5) * ch);
       path.moveTo(center(p.first).dx, center(p.first).dy);
@@ -1596,21 +1459,16 @@ class GridPainter extends CustomPainter {
       drawPath(draft, colors[active!]);
     }
 
-    // Точки
     for (final e in endpoints.entries) {
       final c = e.key;
       final color = colors[e.value];
       final center = Offset((c % width + 0.5) * cw, (c ~/ width + 0.5) * ch);
-      canvas.drawCircle(center, cell * 0.36, Paint()..color = color.withValues(alpha: 0.2));
-      canvas.drawCircle(center, cell * 0.27, Paint()..color = color);
-      canvas.drawCircle(center, cell * 0.11, Paint()..color = bg);
+      canvas.drawCircle(center, cell * 0.38, Paint()..color = color.withValues(alpha: 0.25));
+      canvas.drawCircle(center, cell * 0.28, Paint()..color = color);
+      canvas.drawCircle(center, cell * 0.12, Paint()..color = Colors.white);
     }
   }
 
   @override
   bool shouldRepaint(covariant GridPainter old) => true;
 }
-// ─── Конец основного кода игры ───────────────────────────────────────────
-// Если компилятор ругается на отсутствующие методы MusicService.start —
-// они уже есть в блоке 2. Ничего дополнительно в конец файла добавлять
-// не нужно. Файл должен заканчиваться закрывающей скобкой GridPainter.
